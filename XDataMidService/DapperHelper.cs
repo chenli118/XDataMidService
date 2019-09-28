@@ -10,7 +10,7 @@ using System.Reflection;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 
-namespace XDATA2EAS
+namespace XDataMidService
 {
     public static class SqlMapperUtil
     {

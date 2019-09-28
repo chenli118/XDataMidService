@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace XDATA2EAS.Controllers
+namespace XDataMidService.Controllers
 {
     [ApiController]
+    [Produces("application/json")]
     [Route("[controller]")]
     public class XFileController : ControllerBase
     {
@@ -29,8 +30,23 @@ namespace XDATA2EAS.Controllers
         }
 
         // POST api/<controller>
+        //[HttpPost]
+        //public void Post([FromBody]Models.xfile value)
+        //{
+
+
+
+        //}
+        //[HttpPost]
+        //public void Post(dynamic dynamic)
+        //{
+
+
+
+        //}
+        // POST api/<controller>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public void Post(string value)
         {
 
 

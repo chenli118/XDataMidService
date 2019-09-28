@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace XDATA2EAS.Models
+namespace XDataMidService.Models
 {
     public class xfile
     {
