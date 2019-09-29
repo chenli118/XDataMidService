@@ -5,6 +5,13 @@ using System.Threading.Tasks;
 
 namespace XDataMidService.Models
 {
+
+    public class Person
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public int Age { get; set; }
+    }
     public class xfile
     {
         //TDS26MPvb select  name  , 'public string '+name+' { get; set; }' from  sys.columns where object_id in (select object_id from sys.objects where name ='AuthorizeXFiles')

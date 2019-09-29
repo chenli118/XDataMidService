@@ -6,7 +6,23 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.30" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NetDiskLibrary">
+      <HintPath>bin\Debug\netcoreapp3.0\NetDiskLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="ParadoxReader">
+      <HintPath>bin\Debug\netcoreapp3.0\ParadoxReader.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

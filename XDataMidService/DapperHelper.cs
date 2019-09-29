@@ -25,11 +25,8 @@ namespace XDataMidService
         {
             string connString = "";
             if (connectionString.Length == 0)
-            {
-                var builder = new ConfigurationBuilder().AddJsonFile("WebApp.Config.json", optional: false, reloadOnChange: true);
-                var configure = builder.Build();
-                var configstr = configure.GetConnectionString("DefaultConnection");
-                connString = connectionString = configstr;
+            { 
+                connString = connectionString = StaticUtil.GetConfigValueByKey(name);
             }
             if (name != null) connectionString = connString = name; else connString = connectionString;
             var connection = new SqlConnection(connString);
@@ -290,14 +287,14 @@ namespace XDataMidService
         /// <summary>
         /// 数据库连接字符串
         /// </summary>
-        private static  string connectionString = string.Empty;
+        public static  string connectionString = string.Empty;
 
-        public static DapperHelper<T> Create()
+        public static DapperHelper<T> Create(string confKey = "",string conStr="")
         {
-            var builder = new ConfigurationBuilder().AddJsonFile("WebApp.Config.json", optional: false, reloadOnChange: true);
-            var configure = builder.Build();
-            var configstr = configure.GetConnectionString("DefaultConnection");
-            connectionString = configstr;
+            if (conStr.Length == 0)
+                connectionString = StaticUtil.GetConfigValueByKey(confKey);
+            else
+                connectionString = conStr;
             return new DapperHelper<T>();
         }
             

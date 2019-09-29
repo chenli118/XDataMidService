@@ -3,16 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace XDataMidService.Controllers
 {
-    [ApiController]
-    [Produces("application/json")]
+    [ApiController] 
     [Route("[controller]")]
     public class XFileController : ControllerBase
     {
+
+        private readonly ILogger<XFileController> _logger;
+
+        public XFileController(ILogger<XFileController> logger)
+        {
+            _logger = logger;
+        }
         // GET: api/<controller>
         [HttpGet]
         public IEnumerable<Models.xfile> Get()
@@ -29,29 +36,30 @@ namespace XDataMidService.Controllers
             return "value";
         }
 
-        // POST api/<controller>
+        //POST api/<controller>
         //[HttpPost]
-        //public void Post([FromBody]Models.xfile value)
+
+        //public void Post([FromBody] Models.Person value)
         //{
 
 
 
         //}
-        //[HttpPost]
-        //public void Post(dynamic dynamic)
-        //{
-
-
-
-        //}
-        // POST api/<controller>
         [HttpPost]
-        public void Post(string value)
+        public void Post([FromBody] Models.xfile xfile)
         {
 
 
 
         }
+        // POST api/<controller>
+        //[HttpPost] 
+        //public void Post(Models.xfile value)
+        //{
+
+
+
+        //}
 
         // PUT api/<controller>/5
         [HttpPut("{id}")]
