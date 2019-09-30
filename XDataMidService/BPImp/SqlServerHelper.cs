@@ -10,27 +10,62 @@ namespace XDataMidService.BPImp
 {
     internal class SqlServerHelper
     {
-        public async static void SqlBulkCopy(System.Data.DataTable dt, string conStr)
+        public static void GetLinkServer(string conStr, string sName, string logName, string pwd, string ipAddress)
         {
-            using (SqlConnection connection = new SqlConnection(conStr))
+            string sql = string.Format(" exec sp_addlinkedserver '{0}','','SQLOLEDB','{3}'  " +
+                " exec sp_addlinkedsrvlogin '{0}', 'false', NULL, '{1}', '{2}'", sName, logName, pwd, ipAddress);
+            using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(conStr))
             {
-                connection.Open();
-                using (var tran = connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                try
                 {
-                    using (SqlBulkCopy copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, tran))
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    string cmdText = "SELECT 1 FROM sys.servers WHERE name='"+sName+"'";
+                    System.Data.SqlClient.SqlCommand sqlCommand = new System.Data.SqlClient.SqlCommand(cmdText,conn);
+                    var s = sqlCommand.ExecuteScalar();
+                    if (int.Parse(s.ToString()) == 1)
+                    { }
+                    else
                     {
-                        copy.DestinationTableName = dt.TableName;
 
-                        foreach (DataColumn column in dt.Columns)
-                        {
-                            copy.ColumnMappings.Add(new SqlBulkCopyColumnMapping(column.ColumnName, column.ColumnName));
-                        }                       
-                        copy.BulkCopyTimeout = 0;
-                        await copy.WriteToServerAsync(dt);
-                        tran.Commit();
-                        connection.Close();
+                        sqlCommand.CommandText = sql;
+                        sqlCommand.ExecuteNonQuery();
                     }
                 }
+                catch (Exception err)
+                {
+                    throw err;
+                }
+            }
+        }
+
+        public async static Task SqlBulkCopy(System.Data.DataTable dt, string conStr)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(conStr))
+                {
+                    connection.Open();
+                    using (var tran = connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                    {
+                        using (SqlBulkCopy copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, tran))
+                        {
+                            copy.DestinationTableName = dt.TableName;
+
+                            foreach (DataColumn column in dt.Columns)
+                            {
+                                copy.ColumnMappings.Add(new SqlBulkCopyColumnMapping(column.ColumnName, column.ColumnName));
+                            }
+                            copy.BulkCopyTimeout = 0;
+                             await copy.WriteToServerAsync(dt);
+                            tran.Commit();
+                            connection.Close();
+                        }
+                    }
+                }               
+            }
+            catch (Exception err)
+            {
+                throw err;
             }
 
         }

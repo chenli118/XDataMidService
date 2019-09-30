@@ -35,5 +35,20 @@ namespace XDataMidService.Controllers
             return new XDataReqResult(string.Format("{0}下载{1}文件失败",xfile.CustomName,xfile.FileName), "从网盘下载文件失败", System.Net.HttpStatusCode.ExpectationFailed, requestMessage).ExecuteAsync();
 
         }
+        [HttpPost]
+        [Route("XData2EAS")]
+        public Task<HttpResponseMessage> XData2EAS([FromBody] Models.xfile xfile)
+        {
+            DapperHelper.connectionString = StaticUtil.GetConfigValueByKey("EASConn");
+            string targetPath = xfile.FileName;
+            string wp_GUID = xfile.CustomID;
+            string projectID = xfile.ZTID.Replace("-", "");
+            PDT2SDT dT2SDT = new PDT2SDT(targetPath, wp_GUID, projectID, xfile);
+            if (dT2SDT.DownLoadFile(xfile))
+                return dT2SDT.Start();
+            HttpRequestMessage requestMessage = new HttpRequestMessage();
+            return new XDataReqResult(string.Format("{0}下载{1}文件失败", xfile.CustomName, xfile.FileName), "从网盘下载文件失败", System.Net.HttpStatusCode.ExpectationFailed, requestMessage).ExecuteAsync();
+
+        }
     }
 }

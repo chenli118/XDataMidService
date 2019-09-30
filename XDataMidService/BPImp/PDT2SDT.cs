@@ -323,7 +323,7 @@ namespace XDataMidService.BPImp
                 {
                     string execSQL = " truncate table  " + auxTable.TableName;
                     SqlMapperUtil.CMDExcute(execSQL, null, conStr);
-                    SqlServerHelper.SqlBulkCopy(auxTable, conStr);
+                    SqlServerHelper.SqlBulkCopy(auxTable, conStr).Wait();
                 }
             }
             catch (Exception err)
@@ -388,7 +388,7 @@ namespace XDataMidService.BPImp
                 }
                 string execSQL = " truncate table  " + auxfdetail.TableName;
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
-                SqlServerHelper.SqlBulkCopy(auxfdetail, conStr);
+                SqlServerHelper.SqlBulkCopy(auxfdetail, conStr).Wait();
             }
             catch (Exception err)
             {
@@ -500,7 +500,7 @@ namespace XDataMidService.BPImp
                 BuildTypeCode(accountTable, conStr);
                 string execSQL = " truncate table ACCOUNT ";
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
-                SqlServerHelper.SqlBulkCopy(accountTable, conStr);
+                SqlServerHelper.SqlBulkCopy(accountTable, conStr).Wait();
             }
             catch (Exception err)
             {

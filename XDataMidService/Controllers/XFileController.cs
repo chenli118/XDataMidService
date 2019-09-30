@@ -25,7 +25,8 @@ namespace XDataMidService.Controllers
         public IEnumerable<Models.xfile> Get()
         {
             string itemclass = "select * from AuthorizeXFiles";
-            var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null);
+            var constr = StaticUtil.GetConfigValueByKey("");
+            var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null, constr);
             return tab_ic;
         }
 
