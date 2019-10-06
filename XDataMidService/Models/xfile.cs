@@ -32,5 +32,9 @@ namespace XDataMidService.Models
         public int FileSize { get; set; }
         public string UploadUser { get; set; }
         public DateTime UploadTime { get; set; }
+
+        public string WP_GUID { get; set; }
+        public string ProjectID { get; set; }
+        public string DbName { get; set; }
     }
 }

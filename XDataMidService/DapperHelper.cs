@@ -288,6 +288,7 @@ namespace XDataMidService
         /// 数据库连接字符串
         /// </summary>
         public static  string connectionString = string.Empty;
+        public string conStr { get { return connectionString; } set { connectionString = value; } }
 
         public static DapperHelper<T> Create(string confKey = "",string conStr="")
         {
@@ -493,6 +494,7 @@ namespace XDataMidService
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
+                if (con.State != ConnectionState.Open) con.Open();
                 using (var transaction = con.BeginTransaction())
                 {
                     try

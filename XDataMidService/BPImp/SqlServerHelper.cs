@@ -10,7 +10,7 @@ namespace XDataMidService.BPImp
 {
     internal class SqlServerHelper
     {
-        public static void GetLinkServer(string conStr, string sName, string logName, string pwd, string ipAddress)
+        public static string GetLinkServer(string conStr, string sName, string logName, string pwd, string ipAddress)
         {
             string sql = string.Format(" exec sp_addlinkedserver '{0}','','SQLOLEDB','{3}'  " +
                 " exec sp_addlinkedsrvlogin '{0}', 'false', NULL, '{1}', '{2}'", sName, logName, pwd, ipAddress);
@@ -22,14 +22,17 @@ namespace XDataMidService.BPImp
                     string cmdText = "SELECT 1 FROM sys.servers WHERE name='"+sName+"'";
                     System.Data.SqlClient.SqlCommand sqlCommand = new System.Data.SqlClient.SqlCommand(cmdText,conn);
                     var s = sqlCommand.ExecuteScalar();
-                    if (int.Parse(s.ToString()) == 1)
-                    { }
+                    if (s!=null && int.Parse(s.ToString()) == 1)
+                    {
+                    
+                    }
                     else
                     {
 
                         sqlCommand.CommandText = sql;
                         sqlCommand.ExecuteNonQuery();
                     }
+                    return sName;
                 }
                 catch (Exception err)
                 {
