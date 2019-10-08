@@ -42,13 +42,31 @@ namespace XDataMidService.Controllers
         {
             HttpRequestMessage requestMessage = new HttpRequestMessage();
             string projectID = xfile.ProjectID;
-            string dbName = xfile.DbName;
-            string scon = StaticUtil.GetConfigValueByKey("EASConn");
+            string logName = string.Empty;
+            string pwd = string.Empty;
+            string ip = string.Empty;
+            string dbName = string.Empty;
+            string scon = xfile.DbName; 
             string[] sValue = scon.Split(';');
-            string logName = sValue[1].Split('=')[1];
-            string pwd = sValue[2].Split('=')[1];
-            string ip = sValue[0].Split('=')[1];
-
+            foreach (var s in sValue)
+            {
+                if (s.StartsWith("Server="))
+                {
+                    ip = s.Replace("Server=", "");
+                }
+                if (s.StartsWith("Database="))
+                {
+                    dbName = s.Replace("Database=", "");
+                }
+                if (s.StartsWith("User ID="))
+                {
+                    logName = s.Replace("User ID=", "");
+                }
+                if (s.StartsWith("Password="))
+                {
+                    pwd = s.Replace("Password=", "");
+                }
+            }
             string linkSvrName=  SqlServerHelper.GetLinkServer(StaticUtil.GetConfigValueByKey("XDataConn"), "XData2Eas", logName, pwd, ip);
             if (!string.IsNullOrEmpty(linkSvrName)) 
             {
@@ -74,11 +92,11 @@ namespace XDataMidService.Controllers
                 
                 string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);
                 var dapper = DapperHelper<xfile>.Create("XDataConn");
-                dapper.conStr = StaticUtil.GetConfigValueByKey("XDataConn").Replace("master",projectID);
+                dapper.conStr = StaticUtil.GetConfigValueByKey("XDataConn").Replace("master", xfile.ZTID);
                 int ret = dapper.ExecuteTransaction(sqlarr);
                 if (ret > 0)
                 {
-                    return new XDataReqResult(string.Format("{0}项目导入EAS成功", xfile.CustomName, xfile.CustomID), "EAS导数成功", System.Net.HttpStatusCode.OK, requestMessage).ExecuteAsync();
+                    return new XDataReqResult(string.Format("{0}项目导入EAS成功", xfile.ProjectID, xfile.CustomID), "EAS导数成功", System.Net.HttpStatusCode.OK, requestMessage).ExecuteAsync();
 
                 }
 
