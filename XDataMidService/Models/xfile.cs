@@ -15,7 +15,7 @@ namespace XDataMidService.Models
     public class xfile
     {
         //TDS26MPvb select  name  , 'public string '+name+' { get; set; }' from  sys.columns where object_id in (select object_id from sys.objects where name ='AuthorizeXFiles')
-
+        public int XID { get; set; }
         public string CustomID { get; set; }
         public string CustomName { get; set; }
         public string FileName { get; set; }

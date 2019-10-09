@@ -45,7 +45,7 @@ namespace XDataMidService.BPImp
                 var ndc = new  MinniDown(wp_host, logname, logpwd);
 
                 FileInfo fileInfo = new FileInfo(xfile.FileName);
-                var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData") + _zzero1F.Replace(fileInfo.Name, "");
+                var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", _projectID);
                 if (!Directory.Exists(tempFolder)) Directory.CreateDirectory(tempFolder);
                 _tempFile = Path.Combine(tempFolder.Replace('/', '\\'), fileInfo.Name);
                 if (File.Exists(_tempFile))
@@ -480,7 +480,7 @@ namespace XDataMidService.BPImp
                     DataRow dr = accountTable.NewRow();
                     dr["ProjectID"] = _projectID;
                     dr["AccountCode"] = vd.kmdm;
-                    dr["UpperCode"] = "";
+                    dr["UpperCode"] = DBNull.Value;
                     dr["AccountName"] = vd.kmmc;
                     //dr["Attribute"] = vd.KM_TYPE == "损益" ? 1 : 0;
                     dr["Jd"] = 1;//default(1)
