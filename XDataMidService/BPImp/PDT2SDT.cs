@@ -27,8 +27,8 @@ namespace XDataMidService.BPImp
         {
             _zzero1F = zzero1F;
             _wp_GUID = wp_GUID;
-            _projectID = projectID;
-            _auditYear = int.Parse(cInfo.ZTYear.Trim());
+            _projectID = projectID;            
+            _auditYear =  int.Parse(cInfo.ZTYear.Trim());
             _beginDate = DateTime.Parse(_auditYear + "/" + cInfo.PZBeginDate.Trim());
             _endDate = DateTime.Parse(_auditYear + "/" + cInfo.PZEndDate.Trim());
             _clientid = cInfo.CustomID;
@@ -36,7 +36,7 @@ namespace XDataMidService.BPImp
         }
         public bool DownLoadFile(xfile xfile)
         {
-            string XdataAccount = StaticUtil.GetConfigValueByKey("XdataAccount");
+            string XdataAccount = StaticUtil.GetConfigValueByKey("XdataWPAccount");
             string wp_host = StaticUtil.GetConfigValueByKey("WP_HOST");
             if (!string.IsNullOrEmpty(XdataAccount))
             {
@@ -72,7 +72,7 @@ namespace XDataMidService.BPImp
             {
                 _statusCode = HttpStatusCode.FailedDependency;
                 _content = "XData File No Found";
-                _reasonPhrase = "PDT2SDT.Start";
+                _reasonPhrase = "PDT2SDT.NoFile";
                 return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
             }
             var files = UnZipFile(_tempFile);

@@ -24,10 +24,14 @@ namespace XDataMidService.Controllers
         [HttpGet]
         public IEnumerable<Models.xfile> Get()
         {
-            string itemclass = "select * from AuthorizeXFiles";
-            var constr = StaticUtil.GetConfigValueByKey("");
-            var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null, constr);
-            return tab_ic;
+          string sql = "insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) " +
+                " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  XData2Eas.XDB.dbo.XFiles where xid not in" +
+                " (select xid from  XData.dbo.[XFiles]) ";
+          SqlMapperUtil.CMDExcute(sql, null, StaticUtil.GetConfigValueByKey("XDataConn"));
+          string itemclass = "select * from  XFiles";
+          var constr = StaticUtil.GetConfigValueByKey("");
+          var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null, constr);
+          return tab_ic;
         }
 
         // GET api/<controller>/5

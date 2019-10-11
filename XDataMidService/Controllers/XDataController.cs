@@ -28,7 +28,7 @@ namespace XDataMidService.Controllers
         {
             string targetPath = xfile.FileName;
             string wp_GUID = xfile.WP_GUID;
-            string projectID = xfile.ZTID.Replace("-", "");
+            string projectID = xfile.ZTID;
             PDT2SDT dT2SDT = new PDT2SDT(targetPath, wp_GUID, projectID, xfile);
             if (dT2SDT.DownLoadFile(xfile))
                 return dT2SDT.Start();
@@ -78,7 +78,7 @@ namespace XDataMidService.Controllers
                     pwd = s.Replace("Password=", "");
                 }
             }
-            string linkSvrName=  SqlServerHelper.GetLinkServer(StaticUtil.GetConfigValueByKey("XDataConn"), "XData2Eas", logName, pwd, ip);
+            string linkSvrName=  SqlServerHelper.GetLinkServer(StaticUtil.GetConfigValueByKey("XDataConn"), ip, logName, pwd, ip);
             if (!string.IsNullOrEmpty(linkSvrName)) 
             {
                 StringBuilder sb = new StringBuilder();
