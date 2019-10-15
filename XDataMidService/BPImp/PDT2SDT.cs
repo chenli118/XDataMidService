@@ -18,23 +18,22 @@ namespace XDataMidService.BPImp
 {
     internal class PDT2SDT
     {
+        
         private int _auditYear;
-        private string conStr, _zzero1F, _wp_GUID, _clientid, _projectID, _content, _reasonPhrase, _tempFile;
+        private string conStr, _tempFile;
         private DateTime _beginDate, _endDate;
-        private HttpRequestMessage requestMessage;
-        private HttpStatusCode _statusCode;
-        public PDT2SDT(string zzero1F, string wp_GUID, string projectID, Models.xfile cInfo)
+        private xfile xfile;
+        public Exception _xdException;
+        public PDT2SDT(Models.xfile xf)
         {
-            _zzero1F = zzero1F;
-            _wp_GUID = wp_GUID;
-            _projectID = projectID;            
-            _auditYear =  int.Parse(cInfo.ZTYear.Trim());
-            _beginDate = DateTime.Parse(_auditYear + "/" + cInfo.PZBeginDate.Trim());
-            _endDate = DateTime.Parse(_auditYear + "/" + cInfo.PZEndDate.Trim());
-            _clientid = cInfo.CustomID;
+            xfile = xf;
+            _auditYear = int.Parse(xf.ZTYear.Trim());
+            _beginDate = DateTime.Parse(_auditYear + "/" + xf.PZBeginDate.Trim());
+            _endDate = DateTime.Parse(_auditYear + "/" + xf.PZEndDate.Trim());
+            _xdException = new Exception(xf.ZTName);
 
         }
-        public bool DownLoadFile(xfile xfile)
+        public bool DownLoadFile(xfile xf)
         {
             string XdataAccount = StaticUtil.GetConfigValueByKey("XdataWPAccount");
             string wp_host = StaticUtil.GetConfigValueByKey("WP_HOST");
@@ -44,8 +43,8 @@ namespace XDataMidService.BPImp
                 string logpwd = XdataAccount.Split('#')[0];
                 var ndc = new  MinniDown(wp_host, logname, logpwd);
 
-                FileInfo fileInfo = new FileInfo(xfile.FileName);
-                var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", _projectID);
+                FileInfo fileInfo = new FileInfo(xf.FileName);
+                var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", xf.ZTID);
                 if (!Directory.Exists(tempFolder)) Directory.CreateDirectory(tempFolder);
                 _tempFile = Path.Combine(tempFolder.Replace('/', '\\'), fileInfo.Name);
                 if (File.Exists(_tempFile))
@@ -54,7 +53,8 @@ namespace XDataMidService.BPImp
                     File.Delete(_tempFile);
                 }
                 string strRet = string.Empty;
-                bool bRet = ndc.DownloadFile(_wp_GUID, _zzero1F, _tempFile, out strRet);
+                string struPath = xf.CustomID + "/" + xf.FileName;
+                bool bRet = ndc.DownloadFile(xf.WP_GUID, struPath, _tempFile, out strRet);
                 if (bRet)
                 {
                     return true;
@@ -63,94 +63,75 @@ namespace XDataMidService.BPImp
             }
             return false;
         }
-        public Task<HttpResponseMessage> Start()
+        public XDataResponse Start()
         {
-            XDataReqResult result = null;
-            requestMessage = new HttpRequestMessage();
+            xfile.ProjectID = xfile.ZTID; //账套ID作为中间临时库名和项目编号
+            XDataResponse response = new XDataResponse();
+            response.HttpStatusCode = 500;
             bool stepRet = false;           
             if (!File.Exists(_tempFile))
-            {
-                _statusCode = HttpStatusCode.FailedDependency;
-                _content = "XData File No Found";
-                _reasonPhrase = "PDT2SDT.NoFile";
-                return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+            {               
+                response.ResultContext = "XData File No Found";
+                return response;
             }
             var files = UnZipFile(_tempFile);
             stepRet = DBInit(files);
             if (!stepRet)
             {
-                _statusCode = HttpStatusCode.FailedDependency;
-                _content = "ERROR：基础数据加载失败";
-                _reasonPhrase = "PDT2SDT.DBInit";
-                return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                response.ResultContext = "ERROR：基础数据加载失败";
+                return response;
             }
             stepRet = InitProject();
             if (!stepRet)
             {
-                _statusCode = HttpStatusCode.FailedDependency;
-                _content = "ERROR：项目表数据加载失败";
-                _reasonPhrase = "PDT2SDT.InitProject";
-                return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                response.ResultContext = "ERROR：项目表数据加载失败";
+                return response; 
             }
             stepRet = InitAccount();
             if (!stepRet)
             {
-                _statusCode = HttpStatusCode.FailedDependency;
-                _content = "ERROR：科目表数据加载失败";
-                _reasonPhrase = "PDT2SDT.InitAccount";
-                return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                response.ResultContext = "ERROR：科目表数据加载失败";
+                return response; 
             }
             stepRet = InitVoucher();
             if (!stepRet)
             {
-                _statusCode = HttpStatusCode.FailedDependency;
-                _content = "ERROR：凭证表数据加载失败";
-                _reasonPhrase = "PDT2SDT.InitVoucher";
-                return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                response.ResultContext = "ERROR：凭证表数据加载失败";
+                return response; 
             }
-            bool isBaseAccount = GetIsExsitsItemClass();
-            if (isBaseAccount)
+            bool isNotBaseAccount = GetIsExsitsItemClass();
+            if (isNotBaseAccount)
             {
                 stepRet = InitFdetail();
                 if (!stepRet)
                 {
-                    _statusCode = HttpStatusCode.FailedDependency;
-                    _content = "ERROR：AuxiliaryFDetail数据加载失败";
-                    _reasonPhrase = "PDT2SDT.InitFdetail";
-                    return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                    response.ResultContext = "ERROR：AuxiliaryFDetail数据加载失败";
+                    return response; 
                 }
                 Thread.Sleep(1000);
                 stepRet = InitTBAux();
                 if (!stepRet)
                 {
-                    _statusCode = HttpStatusCode.FailedDependency;
-                    _content = "ERROR：TBAux数据加载失败";
-                    _reasonPhrase = "PDT2SDT.InitTBAux";
-                    return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                    response.ResultContext = "ERROR：TBAux数据加载失败";
+                    return response; 
                 }
             }
             stepRet = InitTBFS();
             stepRet = InitTbDetail();
             if (!stepRet)
             {
-                _statusCode = HttpStatusCode.FailedDependency;
-                _content = "ERROR：TBDetail数据加载失败";
-                _reasonPhrase = "PDT2SDT.InitTbDetail";
-                return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                response.ResultContext = "ERROR：TBDetail数据加载失败";
+                return response; 
             }
             stepRet = UpdateTBDetailAndTBAux();
             if (!stepRet)
             {
-                _statusCode = HttpStatusCode.FailedDependency;
-                _content = "ERROR：更新Tbdetail、TBAux失败";
-                _reasonPhrase = "PDT2SDT.UpdateTBDetailAndTBAux";
-                return new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage).ExecuteAsync();
+                response.ResultContext = "ERROR：更新Tbdetail、TBAux失败";
+                return response; 
             }
-            _statusCode = HttpStatusCode.OK;
-            _content = "SUCCESS : 导入数据成功";
-            _reasonPhrase = "PDT2SDT.Start";
-            result = new XDataReqResult(_content, _reasonPhrase, _statusCode, requestMessage);
-            return result.ExecuteAsync();
+            response.HttpStatusCode = 200;
+            response.ResultContext = "SUCCESS : 导入数据成功";
+            return response;
         }
         private bool UpdateTBDetailAndTBAux()
         {
@@ -162,6 +143,7 @@ namespace XDataMidService.BPImp
             }
             catch (Exception err)
             {
+                _xdException = err;
                 return false;
             }
             return true;
@@ -254,11 +236,12 @@ namespace XDataMidService.BPImp
                 SqlServerHelper.SqlBulkCopy(dtDetail, conStr); */
                 #endregion
                 var p = new DynamicParameters();
-                p.Add("@ProjectID", _projectID);
+                p.Add("@ProjectID", xfile.ProjectID);
                 SqlMapperUtil.InsertUpdateOrDeleteStoredProc("InitTbAccTable", p, conStr);
             }
             catch (Exception err)
             {
+                _xdException = err;
                 return false;
             }
             return true;
@@ -267,11 +250,12 @@ namespace XDataMidService.BPImp
         {
             try
             {
-                string execSQL = "Insert TBFS  SELECT * FROM Pack_TBFS  where projectid='audCas' \n\r update TBFS set projectid='" + _projectID + "'";
+                string execSQL = "Insert TBFS  SELECT * FROM Pack_TBFS  where projectid='audCas' \n\r update TBFS set projectid='" + xfile.ProjectID + "'";
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
             }
             catch (Exception err)
             {
+                _xdException = err;
                 return false;
             }
             return true;
@@ -300,7 +284,7 @@ namespace XDataMidService.BPImp
                 foreach (var vd in ds)
                 {
                     DataRow dr = auxTable.NewRow();
-                    dr["ProjectID"] = _projectID;
+                    dr["ProjectID"] = xfile.ProjectID;
                     dr["AccountCode"] = vd.accountcode;
                     dr["AuxiliaryCode"] = vd.AuxiliaryCode;
                     dr["AuxiliaryName"] = vd.AuxiliaryName;
@@ -328,6 +312,7 @@ namespace XDataMidService.BPImp
             }
             catch (Exception err)
             {
+                _xdException = err;
                 return false;
             }
             return true;
@@ -370,7 +355,7 @@ namespace XDataMidService.BPImp
                                 if (!string.IsNullOrWhiteSpace(xv.Value))
                                 {
                                     DataRow dr1 = auxfdetail.NewRow();
-                                    dr1["projectid"] = _projectID;
+                                    dr1["projectid"] = xfile.ProjectID ;
                                     dr1["Accountcode"] = d.Kmdm;
                                     dr1["AuxiliaryCode"] = xv.Value;
                                     dr1["Ncye"] = d.Ncye;
@@ -392,6 +377,7 @@ namespace XDataMidService.BPImp
             }
             catch (Exception err)
             {
+                _xdException = err;
                 return false;
             }
             return true;
@@ -410,7 +396,7 @@ namespace XDataMidService.BPImp
             {
                 string jzpzSQL = " truncate table TBVoucher" +
                     " insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx,FDetailID) ";
-                jzpzSQL += "select  newid() as VoucherID,'" + _clientid + "' as clientID, '" + _projectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj as Period ,Pzh,fjzs as Djh,Kmdm as AccountCode ," +
+                jzpzSQL += "select  newid() as VoucherID,'" + xfile.CustomName + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj as Period ,Pzh,fjzs as Djh,Kmdm as AccountCode ," +
                    " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
                    " case when jd = '贷' then rmb else 0 end as dfje,  " +
                    " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
@@ -439,7 +425,8 @@ namespace XDataMidService.BPImp
             }
             catch (Exception err)
             {
-                throw err;
+                _xdException = err;
+                return false;
             }
             return true;
         }
@@ -447,7 +434,7 @@ namespace XDataMidService.BPImp
         {
             try
             {
-                string sql = "select 1 as be from km where Kmdm !=Kmdm_Jd";               
+                string sql = "select 1 as be from km where left(Kmdm,len(kmdm_jd)) !=Kmdm_Jd";               
                 object ret = DapperHelper<int>.Create("XDataConn",conStr).ExecuteScalar(sql, null);
                 if (ret != null)
                 {
@@ -478,8 +465,9 @@ namespace XDataMidService.BPImp
                 foreach (var vd in ds)
                 {
                     DataRow dr = accountTable.NewRow();
-                    dr["ProjectID"] = _projectID;
-                    dr["AccountCode"] = vd.kmdm;
+                    dr["ProjectID"] = xfile.ProjectID;
+                    string dm= vd.kmdm;
+                    dr["AccountCode"] =dm.TrimEnd('.');
                     dr["UpperCode"] = DBNull.Value;
                     dr["AccountName"] = vd.kmmc;
                     //dr["Attribute"] = vd.KM_TYPE == "损益" ? 1 : 0;
@@ -504,6 +492,7 @@ namespace XDataMidService.BPImp
             }
             catch (Exception err)
             {
+                _xdException = err;
                 return false;
             }
             return true;
@@ -575,18 +564,36 @@ namespace XDataMidService.BPImp
         {
             try
             {
-                string projectsql = " truncate table PROJECT  ; INSERT  PROJECT   SELECT Distinct '" + _projectID + "', LEFT(XMDM, CHARINDEX('.', XMDM)),XMDM,isnull(XMMC,space(0)),NULL,XMJB,XMMX     FROM XM " +
+                string projectsql = " truncate table PROJECT  ; INSERT  PROJECT   SELECT Distinct '" + xfile.ProjectID + "', LEFT(XMDM, CHARINDEX('.', XMDM)),XMDM,isnull(XMMC,space(0)),NULL,XMJB,XMMX     FROM XM " +
                     " ; update PROJECT set ProjectCode=LTRIM(rtrim(ProjectCode)),TypeCode=LTRIM(rtrim(TypeCode))  ";
                 SqlMapperUtil.CMDExcute(projectsql, null, conStr);
-                string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1 ";
-                SqlMapperUtil.CMDExcute(jbsql, null, conStr);
 
-                string projecttypesql = " truncate table ProjectType  ; INSERT  ProjectType  SELECT   '" + _projectID + "', FITEMID,FName FROM t_itemclass" +
+                string mxjb = " select MAX(JB) from [ProJect]";
+                int mj= SqlMapperUtil.SqlWithParamsSingle<int>(mxjb, null, conStr);
+                if (mj < 4)
+                {
+                    string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1 AND p1.UPPERCODE IS NULL	 ";
+                    SqlMapperUtil.CMDExcute(jbsql, null, conStr);
+                }
+                else
+                {
+                    int m = 1;
+                    while (m != mj)
+                    {
+                        m = m + 1;
+                        string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1  AND p1.UPPERCODE IS NULL  and p2.JB<=" + m;
+                        SqlMapperUtil.CMDExcute(jbsql, null, conStr);
+                    }
+                }
+
+
+                string projecttypesql = " truncate table ProjectType  ; INSERT  ProjectType  SELECT   '" + xfile.ProjectID + "', FITEMID,FName FROM t_itemclass" +
                     " ; update  PROJECTTYPE set TypeCode=LTRIM(rtrim(TypeCode))   ";
                 SqlMapperUtil.CMDExcute(projecttypesql, null, conStr);
             }
             catch (Exception err)
             {
+                _xdException = err;
                 return false;
             }
             return true;
@@ -610,7 +617,7 @@ namespace XDataMidService.BPImp
             string kjqjInsert = "delete dbo.kjqj where Projectid='{0}'  " +
                 " insert  dbo.kjqj(ProjectID,CustomerCode,CustomerName,BeginDate,EndDate,KJDate)" +
                 "  select '{0}','{1}','{1}','{2}','{3}','{4}'";
-            SqlServerHelper.ExecuteSql(string.Format(kjqjInsert, dbName, _projectID, _beginDate, _endDate, _auditYear), conStr);
+            SqlServerHelper.ExecuteSql(string.Format(kjqjInsert, dbName, xfile.ProjectID, _beginDate, _endDate, _auditYear), conStr);
 
         }
         private bool DBInit(string[] pfiles)
@@ -630,10 +637,10 @@ namespace XDataMidService.BPImp
                     || (Path.GetFileNameWithoutExtension(p).ToLower() != "jzpz" &&
                         Path.GetFileNameWithoutExtension(p).ToLower().IndexOf("jzpz") > -1)));
                 if (dbFiles.Count() == 0) return false;
-                InitDataBase(_projectID);
+                InitDataBase(xfile.ProjectID);
                 Array.ForEach(dbFiles.ToArray(), (string dbfile) =>
                {
-                   PD2SqlDB(dbfile, _projectID);
+                   PD2SqlDB(dbfile, xfile.ProjectID);
 
                     //else if (importType != 0 &&
                     //         tables.Count(x => dbfile.ToLower().IndexOf(x) > -1) > 0)
@@ -646,7 +653,8 @@ namespace XDataMidService.BPImp
             }
             catch (Exception err)
             {
-                throw err;
+                _xdException = err;
+                return false;
             }
             return true;
 
@@ -736,10 +744,10 @@ namespace XDataMidService.BPImp
                 dt.Dispose();
                 dt = null;
             }
-            catch (Exception ex)
+            catch (Exception err)
             {
-                throw new Exception(string.Format("转换数据失败", filename), ex);
-
+                _xdException = err;
+                return false;
             }
             return true;
         }
@@ -749,9 +757,20 @@ namespace XDataMidService.BPImp
             var tmpFolder = zzero1F.Remove(zzero1F.LastIndexOf('.'));
             if (Directory.Exists(tmpFolder))
             {
-                tmpFolder = tmpFolder + DateTime.Now.Ticks;
-            } 
-            Directory.CreateDirectory(tmpFolder);
+                string[] fs = Directory.GetFiles(tmpFolder);
+                if (fs.Length > 0)
+                {
+                    foreach (var f in fs)
+                    {
+                        File.SetAttributes(f, FileAttributes.Normal);
+                        File.Delete(f);
+                    }
+                }
+            }
+            else
+            {
+                Directory.CreateDirectory(tmpFolder);
+            }
             try
             {
                 using (var stream = new FileStream(zzero1F, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))

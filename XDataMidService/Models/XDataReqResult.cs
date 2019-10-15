@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,30 +9,39 @@ using System.Threading.Tasks;
 
 namespace XDataMidService.Models
 {
-    public class XDataReqResult
+
+    [Serializable]
+    public class XDataResponse
+    {
+        public int HttpStatusCode { get; set; }
+        public string ResultContext { get; set; }
+    }
+    public class XDataReqResult: IActionResult
     {
         string _content, _reasonPhrase;
-        HttpStatusCode _statusCode;
+        int _statusCode;
         HttpRequestMessage _request;
 
-        public XDataReqResult(string content,string reasonPhrase, HttpStatusCode statusCode, HttpRequestMessage request)
+        public XDataReqResult(string content,string reasonPhrase, int statusCode, HttpRequestMessage request)
         {
             _content = content;
             _reasonPhrase = reasonPhrase;
             _statusCode = statusCode;
             _request = request;
         }
-        public Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken = default)
+        public Task ExecuteAsync(ActionContext context=null)
         {
-            var response = new HttpResponseMessage()
-            {
-                Content = new StringContent(_content),
-                StatusCode =_statusCode,
-                ReasonPhrase = _reasonPhrase,
-                RequestMessage = _request
-            };
-            return Task.FromResult(response);
+            return ExecuteResultAsync(context);
         }
 
+        public Task ExecuteResultAsync(ActionContext context)
+        {
+            var response = new XDataResponse()
+            {
+                ResultContext = _content,
+                HttpStatusCode = _statusCode
+            };
+            return Task.FromResult<XDataResponse>(response);
+        }
     } 
 }

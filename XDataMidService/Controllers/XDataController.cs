@@ -17,38 +17,59 @@ namespace XDataMidService.Controllers
     [ApiController]
     public class XDataController : ControllerBase
     {
+       
         private readonly ILogger<XDataController> _logger;
+        ActionContext _context;
         public XDataController(ILogger<XDataController> logger)
         {
             _logger = logger;
+           
         }
         [HttpPost]
         [Route("XData2SQL")]
-        public Task<HttpResponseMessage> XData2SQL([FromBody] Models.xfile xfile)
+        public Task XData2SQL([FromBody] Models.xfile xfile)
         {
-            string targetPath = xfile.FileName;
-            string wp_GUID = xfile.WP_GUID;
-            string projectID = xfile.ZTID;
-            PDT2SDT dT2SDT = new PDT2SDT(targetPath, wp_GUID, projectID, xfile);
-            if (dT2SDT.DownLoadFile(xfile))
-                return dT2SDT.Start();
-            HttpRequestMessage requestMessage = new HttpRequestMessage();
-            return new XDataReqResult(string.Format("{0}下载{1}文件失败",xfile.CustomName,xfile.FileName), "从网盘下载文件失败", System.Net.HttpStatusCode.ExpectationFailed, requestMessage).ExecuteAsync();
+            _context = this.ControllerContext;
+            if (_context.HttpContext == null) _context.HttpContext = this.HttpContext;
+            XDataResponse response = new XDataResponse(); 
+            PDT2SDT dT2SDT = new PDT2SDT(xfile);
+            if (dT2SDT.DownLoadFile(xfile)) 
+            {
+                response= dT2SDT.Start();
+                if (response.HttpStatusCode == 200)
+                {
+                    _logger.LogInformation(xfile.ZTName + " " + response.ResultContext + " " + DateTime.Now);
+                    return Ok(response).ExecuteResultAsync(_context);
+                }
+                else
+                {                   
+                    _logger.LogError(xfile.ZTName + " "+ response.ResultContext +" "+DateTime.Now);
+                    response.ResultContext = response.ResultContext+"||"+dT2SDT._xdException.Message;
+                    return BadRequest(response).ExecuteResultAsync(_context);
+                }
+            }
+            string errMsg = string.Format("{0} 从网盘下载账套{1}文件 {2} 失败: ",xfile.CustomName, xfile.ZTName, xfile.FileName);
+            _logger.LogError(errMsg);
+            response.ResultContext = errMsg;
+            return BadRequest(response).ExecuteResultAsync(_context); 
 
         }
         [HttpPost]
         [Route("XData2EAS")]
-        public Task<HttpResponseMessage> XData2EAS([FromBody] Models.xfile xfile)
+        public Task XData2EAS([FromBody] Models.xfile xfile)
         {
-            HttpRequestMessage requestMessage = new HttpRequestMessage();
-
+            _context = this.ControllerContext;
+            XDataResponse response = new XDataResponse();
             var dapper = DapperHelper<xfile>.Create("XDataConn");
             dapper.conStr = StaticUtil.GetConfigValueByKey("XDataConn").Replace("master", xfile.ZTID);
 
             var dstats = dapper.ExecuteScalar("SELECT  datastatus  FROM [xdata].[dbo].[XFiles] where xid= " + xfile.XID, null);
             if (dstats!=null && Convert.ToInt32(dstats) == 1)
             {
-                return new XDataReqResult(string.Format("{0}项目已导入EAS", xfile.ProjectID, xfile.CustomID), "不要重复导入！", System.Net.HttpStatusCode.OK, requestMessage).ExecuteAsync();
+                string errMsg = string.Format("{0}项目已导入EAS", xfile.ProjectID, xfile.CustomID);
+                _logger.LogError(errMsg);
+                response.ResultContext = errMsg;
+                return BadRequest(response).ExecuteResultAsync(_context); 
 
             }
 
@@ -109,27 +130,16 @@ namespace XDataMidService.Controllers
                 if (ret > 0)
                 {
                     dapper.Execute(" update  xdata.dbo.XFiles set datastatus =1 where xid="+xfile.XID , null);
-                    return new XDataReqResult(string.Format("{0}项目导入EAS成功", xfile.ProjectID, xfile.CustomID), "EAS导数成功", System.Net.HttpStatusCode.OK, requestMessage).ExecuteAsync();
+                    response.HttpStatusCode = 200;
+                    response.ResultContext = string.Format("{0}项目导入EAS成功", xfile.ProjectID, xfile.CustomID);
+                    return Ok(response).ExecuteResultAsync(_context); ;
 
                 }
-                dapper.Execute(" update  xdata.dbo.XFiles set datastatus =2 where xid=" + xfile.XID, null);
-                //string xRecords = "select *  from  XData2Eas.neweasv5.dbo.AuthorizeXFiles x where   HASHBYTES('SHA1', (select x.* FOR XML RAW, BINARY BASE64)) " +
-                //    " not in(select    HASHBYTES('SHA1', (select x0.* FOR XML RAW, BINARY BASE64)) hashcode from xdata.dbo.AuthorizeXFiles x0) ";
-                //List<xfile> xlist= DapperHelper<xfile>.Create("XDataConn").Query(xRecords, null);
-                //foreach (var xf in xlist)
-                //{
-                //    XData2SQL(xf).ContinueWith(delegate {
-                //        //SqlMapperUtil.InsertUpdateOrDeleteSql()
-                //        //DapperHelper<xfile>.Create("XDataConn").Execute("insert", null);
-                //    });                    
-
-                //}
-
-
+                dapper.Execute(" update  xdata.dbo.XFiles set datastatus =2 where xid=" + xfile.XID, null); 
             }
-
-
-            return new XDataReqResult(string.Format("{0}项目导入EAS失败", xfile.CustomName, xfile.CustomID), "EAS导数失败", System.Net.HttpStatusCode.InternalServerError, requestMessage).ExecuteAsync();
+            response.HttpStatusCode = 500;
+            response.ResultContext = string.Format("{0}项目导入EAS失败", xfile.ProjectID, xfile.CustomID);
+            return BadRequest(response).ExecuteResultAsync(_context); ;
 
         }
     }
