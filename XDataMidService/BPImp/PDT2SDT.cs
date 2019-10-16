@@ -18,11 +18,12 @@ namespace XDataMidService.BPImp
 {
     internal class PDT2SDT
     {
-        
+
         private int _auditYear;
         private string conStr, _tempFile;
         private DateTime _beginDate, _endDate;
         private xfile xfile;
+        XDataResponse response;
         public Exception _xdException;
         public PDT2SDT(Models.xfile xf)
         {
@@ -31,6 +32,8 @@ namespace XDataMidService.BPImp
             _beginDate = DateTime.Parse(_auditYear + "/" + xf.PZBeginDate.Trim());
             _endDate = DateTime.Parse(_auditYear + "/" + xf.PZEndDate.Trim());
             _xdException = new Exception(xf.ZTName);
+            response = new XDataResponse();
+            response.ResultContext = xf.ZTName;
 
         }
         public bool DownLoadFile(xfile xf)
@@ -41,7 +44,7 @@ namespace XDataMidService.BPImp
             {
                 string logname = XdataAccount.Split('#')[1];
                 string logpwd = XdataAccount.Split('#')[0];
-                var ndc = new  MinniDown(wp_host, logname, logpwd);
+                var ndc = new MinniDown(wp_host, logname, logpwd);
 
                 FileInfo fileInfo = new FileInfo(xf.FileName);
                 var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", xf.ZTID);
@@ -66,38 +69,41 @@ namespace XDataMidService.BPImp
         public XDataResponse Start()
         {
             xfile.ProjectID = xfile.ZTID; //账套ID作为中间临时库名和项目编号
-            XDataResponse response = new XDataResponse();
+
             response.HttpStatusCode = 500;
-            bool stepRet = false;           
+            bool stepRet = false;
             if (!File.Exists(_tempFile))
-            {               
-                response.ResultContext = "XData File No Found";
+            {
+                response.ResultContext += "XData File No Found";
                 return response;
             }
-            var files = UnZipFile(_tempFile);
-            stepRet = DBInit(files);
+            lock (ofile)
+            {
+                var files = UnZipFile(_tempFile);
+                stepRet = DBInit(files);
+            }
             if (!stepRet)
             {
-                response.ResultContext = "ERROR：基础数据加载失败";
+                response.ResultContext += "ERROR：基础数据加载失败";
                 return response;
             }
             stepRet = InitProject();
             if (!stepRet)
             {
-                response.ResultContext = "ERROR：项目表数据加载失败";
-                return response; 
+                response.ResultContext += "ERROR：项目表数据加载失败";
+                return response;
             }
             stepRet = InitAccount();
             if (!stepRet)
             {
-                response.ResultContext = "ERROR：科目表数据加载失败";
-                return response; 
+                response.ResultContext += "ERROR：科目表数据加载失败";
+                return response;
             }
             stepRet = InitVoucher();
             if (!stepRet)
             {
-                response.ResultContext = "ERROR：凭证表数据加载失败";
-                return response; 
+                response.ResultContext += "ERROR：凭证表数据加载失败";
+                return response;
             }
             bool isNotBaseAccount = GetIsExsitsItemClass();
             if (isNotBaseAccount)
@@ -105,15 +111,15 @@ namespace XDataMidService.BPImp
                 stepRet = InitFdetail();
                 if (!stepRet)
                 {
-                    response.ResultContext = "ERROR：AuxiliaryFDetail数据加载失败";
-                    return response; 
+                    response.ResultContext += "ERROR：AuxiliaryFDetail数据加载失败";
+                    return response;
                 }
                 Thread.Sleep(1000);
                 stepRet = InitTBAux();
                 if (!stepRet)
                 {
-                    response.ResultContext = "ERROR：TBAux数据加载失败";
-                    return response; 
+                    response.ResultContext += "ERROR：TBAux数据加载失败";
+                    return response;
                 }
             }
             stepRet = InitTBFS();
@@ -121,13 +127,13 @@ namespace XDataMidService.BPImp
             if (!stepRet)
             {
                 response.ResultContext = "ERROR：TBDetail数据加载失败";
-                return response; 
+                return response;
             }
             stepRet = UpdateTBDetailAndTBAux();
             if (!stepRet)
             {
                 response.ResultContext = "ERROR：更新Tbdetail、TBAux失败";
-                return response; 
+                return response;
             }
             response.HttpStatusCode = 200;
             response.ResultContext = "SUCCESS : 导入数据成功";
@@ -301,6 +307,7 @@ namespace XDataMidService.BPImp
                 }
                 if (auxTable.Rows.Count == 0)
                 {
+                    response.ResultContext += " auxtable is null";
                     return false;
                 }
                 else
@@ -355,9 +362,11 @@ namespace XDataMidService.BPImp
                                 if (!string.IsNullOrWhiteSpace(xv.Value))
                                 {
                                     DataRow dr1 = auxfdetail.NewRow();
-                                    dr1["projectid"] = xfile.ProjectID ;
-                                    dr1["Accountcode"] = d.Kmdm;
-                                    dr1["AuxiliaryCode"] = xv.Value;
+                                    dr1["projectid"] = xfile.ProjectID;
+                                    string dm = d.Kmdm;
+                                    dr1["Accountcode"] = dm.Trim();
+                                    string acode = xv.Value;
+                                    dr1["AuxiliaryCode"] = acode.Trim();
                                     dr1["Ncye"] = d.Ncye;
                                     dr1["Jfje1"] = d.Jfje1;
                                     dr1["Dfje1"] = d.Dfje1;
@@ -386,7 +395,7 @@ namespace XDataMidService.BPImp
         private bool GetIsExsitsItemClass()
         {
             string sql = "select 1 as be from t_itemclass";
-            object ret = DapperHelper<int>.Create("XDataConn",conStr).ExecuteScalar(sql, null);
+            object ret = DapperHelper<int>.Create("XDataConn", conStr).ExecuteScalar(sql, null);
             return ret != null;
         }
         private bool InitVoucher()
@@ -396,7 +405,7 @@ namespace XDataMidService.BPImp
             {
                 string jzpzSQL = " truncate table TBVoucher" +
                     " insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx,FDetailID) ";
-                jzpzSQL += "select  newid() as VoucherID,'" + xfile.CustomName + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj as Period ,Pzh,fjzs as Djh,Kmdm as AccountCode ," +
+                jzpzSQL += "select  newid() as VoucherID,'" + xfile.CustomName + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
                    " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
                    " case when jd = '贷' then rmb else 0 end as dfje,  " +
                    " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
@@ -434,12 +443,12 @@ namespace XDataMidService.BPImp
         {
             try
             {
-                string sql = "select 1 as be from km where left(Kmdm,len(kmdm_jd)) !=Kmdm_Jd";               
-                object ret = DapperHelper<int>.Create("XDataConn",conStr).ExecuteScalar(sql, null);
-                if (ret != null)
-                {
-                    return false;
-                }
+                //string sql = "select 1 as be from km where left(Kmdm,len(kmdm_jd)) !=Kmdm_Jd";
+                //object ret = DapperHelper<int>.Create("XDataConn", conStr).ExecuteScalar(sql, null);
+                //if (ret != null)
+                //{
+                //    return false;
+                //}
                 DataTable accountTable = new DataTable();
                 accountTable.TableName = "ACCOUNT";
                 accountTable.Columns.Add("ProjectID");
@@ -466,8 +475,8 @@ namespace XDataMidService.BPImp
                 {
                     DataRow dr = accountTable.NewRow();
                     dr["ProjectID"] = xfile.ProjectID;
-                    string dm= vd.kmdm;
-                    dr["AccountCode"] =dm.TrimEnd('.');
+                    string dm = vd.kmdm;
+                    dr["AccountCode"] = dm.Trim(); //dm.TrimEnd('.');
                     dr["UpperCode"] = DBNull.Value;
                     dr["AccountName"] = vd.kmmc;
                     //dr["Attribute"] = vd.KM_TYPE == "损益" ? 1 : 0;
@@ -520,7 +529,7 @@ namespace XDataMidService.BPImp
             }
             foreach (string k in dicTypeCode.Keys)
             {
-                var row = accountTable.Rows.Cast<DataRow>().Where(x => x["AccountCode"].ToString() == k).SingleOrDefault();
+                var row = accountTable.Rows.Cast<DataRow>().Where(x => x["AccountCode"].ToString() == k.Trim()).SingleOrDefault();
                 if (row != null)
                 {
                     row["TypeCode"] = string.Join(";", dicTypeCode[k].ToArray());
@@ -569,7 +578,7 @@ namespace XDataMidService.BPImp
                 SqlMapperUtil.CMDExcute(projectsql, null, conStr);
 
                 string mxjb = " select MAX(JB) from [ProJect]";
-                int mj= SqlMapperUtil.SqlWithParamsSingle<int>(mxjb, null, conStr);
+                int mj = SqlMapperUtil.SqlWithParamsSingle<int>(mxjb, null, conStr);
                 if (mj < 4)
                 {
                     string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1 AND p1.UPPERCODE IS NULL	 ";
@@ -642,12 +651,12 @@ namespace XDataMidService.BPImp
                {
                    PD2SqlDB(dbfile, xfile.ProjectID);
 
-                    //else if (importType != 0 &&
-                    //         tables.Count(x => dbfile.ToLower().IndexOf(x) > -1) > 0)
-                    //{
-                    //    importTxtTable(dbname, dbfile);
-                    //}
-                });
+                   //else if (importType != 0 &&
+                   //         tables.Count(x => dbfile.ToLower().IndexOf(x) > -1) > 0)
+                   //{
+                   //    importTxtTable(dbname, dbfile);
+                   //}
+               });
 
                 #endregion
             }
@@ -751,21 +760,24 @@ namespace XDataMidService.BPImp
             }
             return true;
         }
-
+        private readonly object ofile = new object();
         private string[] UnZipFile(string zzero1F)
         {
+
             var tmpFolder = zzero1F.Remove(zzero1F.LastIndexOf('.'));
             if (Directory.Exists(tmpFolder))
             {
-                string[] fs = Directory.GetFiles(tmpFolder);
-                if (fs.Length > 0)
-                {
-                    foreach (var f in fs)
-                    {
-                        File.SetAttributes(f, FileAttributes.Normal);
-                        File.Delete(f);
-                    }
-                }
+                tmpFolder = tmpFolder + DateTime.Now.Ticks;
+                Directory.CreateDirectory(tmpFolder);
+                //string[] fs = Directory.GetFiles(tmpFolder);
+                //if (fs.Length > 0)
+                //{
+                //    foreach (var f in fs)
+                //    {
+                //        File.SetAttributes(f, FileAttributes.Normal);
+                //        File.Delete(f);
+                //    }
+                //}
             }
             else
             {
@@ -787,6 +799,7 @@ namespace XDataMidService.BPImp
             {
                 throw new Exception("解压001文件错误:" + ex.Message, ex);
             }
+
         }
     }
 }

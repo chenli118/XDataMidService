@@ -503,7 +503,7 @@ namespace XDataMidService
                         int result = 0;
                         foreach (var sql in sqlarr)
                         {
-                            result += con.Execute(sql, null, transaction);
+                            result += con.Execute(sql, null, transaction,0);
                         }
 
                         transaction.Commit();

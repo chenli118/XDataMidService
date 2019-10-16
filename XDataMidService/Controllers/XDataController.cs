@@ -18,31 +18,42 @@ namespace XDataMidService.Controllers
     public class XDataController : ControllerBase
     {
        
-        private readonly ILogger<XDataController> _logger;
-        ActionContext _context;
+        private readonly ILogger<XDataController> _logger; 
         public XDataController(ILogger<XDataController> logger)
         {
             _logger = logger;
-           
-        }
+            if (StaticData.X2EasList == null) StaticData.X2EasList = new Dictionary<string, int>();
+            if (StaticData.X2SqlList == null) StaticData.X2SqlList = new Dictionary<string, int>();
+        }       
         [HttpPost]
         [Route("XData2SQL")]
         public Task XData2SQL([FromBody] Models.xfile xfile)
         {
-            _context = this.ControllerContext;
-            if (_context.HttpContext == null) _context.HttpContext = this.HttpContext;
-            XDataResponse response = new XDataResponse(); 
+            ActionContext _context = this.ControllerContext;
+            XDataResponse response = new XDataResponse();
+            string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
+            if (!StaticData.X2SqlList.ContainsKey(key))
+            {
+                StaticData.X2SqlList.Add(key, 1);
+            }
+            else if (StaticData.X2SqlList[key]==1)
+            {
+                response.ResultContext = key + " 已经在执行过程中...";
+                return BadRequest(response).ExecuteResultAsync(_context);
+            }
             PDT2SDT dT2SDT = new PDT2SDT(xfile);
             if (dT2SDT.DownLoadFile(xfile)) 
             {
                 response= dT2SDT.Start();
                 if (response.HttpStatusCode == 200)
                 {
+                    StaticData.X2SqlList[key]++;
                     _logger.LogInformation(xfile.ZTName + " " + response.ResultContext + " " + DateTime.Now);
                     return Ok(response).ExecuteResultAsync(_context);
                 }
                 else
-                {                   
+                {
+                    StaticData.X2SqlList[key]++;
                     _logger.LogError(xfile.ZTName + " "+ response.ResultContext +" "+DateTime.Now);
                     response.ResultContext = response.ResultContext+"||"+dT2SDT._xdException.Message;
                     return BadRequest(response).ExecuteResultAsync(_context);
@@ -58,21 +69,21 @@ namespace XDataMidService.Controllers
         [Route("XData2EAS")]
         public Task XData2EAS([FromBody] Models.xfile xfile)
         {
-            _context = this.ControllerContext;
+            ActionContext _context = this.ControllerContext;
             XDataResponse response = new XDataResponse();
+            string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
+            if (!StaticData.X2EasList.ContainsKey(key))
+            {
+                StaticData.X2EasList.Add(key, 1);
+            }
+            else if (StaticData.X2EasList[key] == 1)
+            {
+                response.ResultContext = key+" 已经在执行过程中...";
+                return BadRequest(response).ExecuteResultAsync(_context);
+            }
             var dapper = DapperHelper<xfile>.Create("XDataConn");
             dapper.conStr = StaticUtil.GetConfigValueByKey("XDataConn").Replace("master", xfile.ZTID);
-
-            var dstats = dapper.ExecuteScalar("SELECT  datastatus  FROM [xdata].[dbo].[XFiles] where xid= " + xfile.XID, null);
-            if (dstats!=null && Convert.ToInt32(dstats) == 1)
-            {
-                string errMsg = string.Format("{0}项目已导入EAS", xfile.ProjectID, xfile.CustomID);
-                _logger.LogError(errMsg);
-                response.ResultContext = errMsg;
-                return BadRequest(response).ExecuteResultAsync(_context); 
-
-            }
-
+         
             string projectID = xfile.ProjectID;
             string logName = string.Empty;
             string pwd = string.Empty;
@@ -100,8 +111,9 @@ namespace XDataMidService.Controllers
                 }
             }
             string linkSvrName=  SqlServerHelper.GetLinkServer(StaticUtil.GetConfigValueByKey("XDataConn"), ip, logName, pwd, ip);
-            if (!string.IsNullOrEmpty(linkSvrName)) 
+            if (!string.IsNullOrEmpty(linkSvrName))
             {
+                linkSvrName = "[" + linkSvrName + "]";
                 StringBuilder sb = new StringBuilder();
                 sb.Append(" SET XACT_ABORT ON   go ");
                 sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProjectType] where projectid ='{0}' ", projectID,linkSvrName,dbName);
@@ -132,6 +144,8 @@ namespace XDataMidService.Controllers
                     dapper.Execute(" update  xdata.dbo.XFiles set datastatus =1 where xid="+xfile.XID , null);
                     response.HttpStatusCode = 200;
                     response.ResultContext = string.Format("{0}项目导入EAS成功", xfile.ProjectID, xfile.CustomID);
+                    _logger.LogInformation(response.ResultContext);
+                    StaticData.X2EasList[key]++;
                     return Ok(response).ExecuteResultAsync(_context); ;
 
                 }
@@ -139,6 +153,7 @@ namespace XDataMidService.Controllers
             }
             response.HttpStatusCode = 500;
             response.ResultContext = string.Format("{0}项目导入EAS失败", xfile.ProjectID, xfile.CustomID);
+            _logger.LogError(response.ResultContext);
             return BadRequest(response).ExecuteResultAsync(_context); ;
 
         }

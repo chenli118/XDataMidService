@@ -14,7 +14,11 @@ namespace XDataMidService
             var builder = new ConfigurationBuilder().AddJsonFile("WebApp.Config.json", optional: false, reloadOnChange: true);
             var configure = builder.Build();    
             return  configure.GetConnectionString(confKey);
-        }
-
+        }        
+    }
+    public static class StaticData
+    {
+        public static Dictionary<string,int> X2SqlList { get; set; }
+        public static Dictionary<string, int> X2EasList { get; set; }
     }
 }

@@ -1,0 +1,2226 @@
+﻿
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('AuxiliaryFDetail')
+            and   type = 'U')
+   drop table AuxiliaryFDetail
+
+create table AuxiliaryFDetail (
+   projectid            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   Accountcode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AuxiliaryCode        varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   Ncye					decimal(19,3)        null default(0),
+   Jfje1				decimal(19,3)        null default(0),
+   Dfje1				decimal(19,3)        null default(0),
+   FDetailID            int                  not null,
+   DataType             int                  not null,
+   DataYear             int                  not null,
+   constraint PK_AUXILIARYFDETAIL primary key (projectid, Accountcode, AuxiliaryCode, FDetailID, DataYear)
+)
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('TBAux')
+            and   type = 'U')
+   drop table TBAux
+
+create table TBAux (
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AccountCode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AuxiliaryCode        varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AuxiliaryName        varchar(100)         collate Chinese_PRC_CI_AS not null,
+   FSCode               varchar(50)          collate Chinese_PRC_CS_AS_KS_WS not null,
+   kmsx                 varchar(100)         collate Chinese_PRC_CI_AS not null,
+   YEFX                 int                  not null default (1),
+   TBGrouping           nvarchar(50)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   Sqqmye               decimal(20,2)        not null default (0),
+   Qqccgz               decimal(20,2)        not null default (0),
+   jfje                 decimal(20,2)        not null default (0),
+   dfje                 decimal(20,2)        not null default (0),
+   qmye                 decimal(20,2)        not null default (0),
+   constraint PK_TBAUX primary key (ProjectID, AccountCode, AuxiliaryCode)
+)
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('ACCOUNT')
+            and   type = 'U')
+   drop table ACCOUNT
+go
+create table ACCOUNT (
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AccountCode          varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   UpperCode            varchar(255)         collate Chinese_PRC_CS_AS_KS_WS null,
+   AccountName          varchar(1000)        not null,
+   Attribute            int                  null,
+   Jd                   int                  null,
+   Hsxms                int                  not null,
+   TypeCode             varchar(255)         collate Chinese_PRC_CS_AS_KS_WS null,
+   Jb                   int                  not null,
+   IsMx                 int                  null,
+   Ncye                 decimal(20,2)        null,
+   Qqccgz               decimal(20,2)        null,
+   Jfje                 decimal(20,2)        null,
+   Dfje                 decimal(20,2)        null,
+   Ncsl                 int                  null,
+   Syjz                 int                  not null default 0,
+   constraint PK_ACCOUNT primary key (ProjectID, AccountCode)
+)
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('TBVoucher')
+            and   type = 'U')
+   drop table TBVoucher
+go
+create table dbo.TBVoucher (
+   HashCode				binary(20) null,
+   VoucherID            varchar(50)          collate Chinese_PRC_CS_AS_KS_WS not null default newid(),
+   Clientid             varchar(100)         not null,
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   IncNo                varchar(50)          collate Chinese_PRC_CI_AS not null,
+   Date                 datetime             not null,
+   Period               int                  not null,
+   Pzlx                 varchar(255)         collate Chinese_PRC_CI_AS null,
+   Pzh                  varchar(255)         collate Chinese_PRC_CI_AS not null,
+   Djh                  int         null,
+   AccountCode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   ProjectCode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS null,
+   Zy                   varchar(Max)         collate Chinese_PRC_CI_AS null,
+   Jfje                 decimal(20,2)        not null,
+   Dfje                 decimal(20,2)        not null,
+   Jfsl                 decimal(20,4)        not null,
+   Dfsl                 decimal(20,4)        not null,
+   ZDR                  varchar(255)         collate Chinese_PRC_CI_AS null,
+   dfkm                 varchar(200)         collate Chinese_PRC_CI_AS null,
+   Jd                   int                  not null,
+   Fsje                 decimal(20,2)        not null,
+   Wbdm                 varchar(200)         collate Chinese_PRC_CI_AS null,
+   Wbje                 decimal(20,4)        null,
+   Hl                   decimal(20,4)        not null,
+   FLLX                 int                  not null default (1),
+   SampleSelectedYesNo  int                  not null default (0),
+   SampleSelectedType   int                  not null default (0),
+   TBGrouping           varchar(200)         null,
+   EASREF               varchar(5)           collate Chinese_PRC_CI_AS null,
+   AccountingAge        int                  not null default (0),
+   qmyegc               int                  not null default (0),
+   Stepofsample         int                  not null default (0),
+   ErrorYesNo           int                  not null default (0),
+   FDetailID            int                  null default -1,
+   constraint PK_TBVoucher primary key (VoucherID)
+         on "PRIMARY"
+)
+on "PRIMARY"
+go
+ 
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('ProJect')
+            and   type = 'U')
+   drop table ProJect
+go
+create table ProJect (
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   TYPECODE             varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   PROJECTCODE          varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   PROJECTNAME          varchar(1000)        not null,
+   UPPERCODE            varchar(255)         collate Chinese_PRC_CS_AS_KS_WS null,
+   JB                   int                  null,
+   ISMX                 int                  null,
+   constraint PK_PROJECT primary key (ProjectID, TYPECODE, PROJECTCODE)
+)
+go
+ 
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('ProjectType')
+            and   type = 'U')
+   drop table ProjectType
+go
+create table ProjectType (
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   TYPECODE             varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   TYPENAME             varchar(1000)        not null,
+   constraint PK_PROJECTTYPE primary key (ProjectID, TYPECODE)
+)
+go
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('Tbwlzl')
+            and   type = 'U')
+   drop table Tbwlzl
+go
+
+create table dbo.Tbwlzl (
+   ID                   varchar(50)          not null,
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   fsCode               varchar(50)          collate Chinese_PRC_CS_AS_KS_WS not null,
+   AccountCode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AuxiliaryCode        varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AgeAnalysis          int                  not null default (0),
+   ZLD1                 decimal(20,2)        not null default (0),
+   ZLD2                 decimal(20,2)        not null default (0),
+   ZLD3                 decimal(20,2)        not null default (0),
+   ZLD4                 decimal(20,2)        not null default (0),
+   ZLD5                 decimal(20,2)        not null default (0),
+   ZLD6                 decimal(20,2)        not null default (0),
+   ZLD7                 decimal(20,2)        not null default (0),
+   ZLD8                 decimal(20,2)        not null default (0),
+   ZLD9                 decimal(20,2)        not null default (0),
+   significant          int                  not null default (0),
+   Impairmenttestmethod int                  not null default (1),
+   impairmentamount     decimal(20,2)        not null default (0),
+   BalanceAnalysis      int                  not null default (0),
+   memo                 varchar(500)         collate Chinese_PRC_CI_AS not null,
+   HZZBZLD1             decimal(20,2)        not null default (0),
+   HZZBZLD2             decimal(20,2)        not null default (0),
+   HZZBZLD3             decimal(20,2)        not null default (0),
+   HZZBZLD4             decimal(20,2)        not null default (0),
+   HZZBZLD5             decimal(20,2)        not null default (0),
+   HZZBZLD6             decimal(20,2)        not null default (0),
+   HZZBZLD7             decimal(20,2)        not null default (0),
+   HZZBZLD8             decimal(20,2)        not null default (0),
+   HZZBZLD9             decimal(20,2)        not null default (0),
+   Creditperiod         int                  not null default (0),
+   constraint PK__TBwlzl primary key (ID, ProjectID)
+         on "PRIMARY"
+)
+on "PRIMARY"
+go
+
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('accountperiod')
+            and   type = 'U')
+   drop table accountperiod
+go
+
+create table accountperiod (
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   accountperiod        int                  not null,
+   Period               int                  not null,
+   StartDate            datetime             not null,
+   EndDate              datetime             not null,
+   DateType             int                  not null,
+   CurrentyearPID       varchar(100)         not null,
+   constraint PK_ACCOUNTPERIOD primary key (ProjectID, accountperiod)
+)
+go
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('TBDetail')
+            and   type = 'U')
+   drop table TBDetail
+go
+create table TBDetail (
+   ID                   varchar(50)          not null,
+   ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   FSCode               varchar(50)          collate Chinese_PRC_CS_AS_KS_WS not null,
+   AccountCode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AuxiliaryCode        varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   AccAuxName           varchar(100)         collate Chinese_PRC_CI_AS not null,
+   DataType             int                  not null,
+   TBGrouping           varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
+   TBType               int                  not null,
+   IsAccMx              int                  not null,
+   IsMx                 int                  not null,
+   IsAux                Int                  not null,
+   kmsx                 varchar(100)         collate Chinese_PRC_CI_AS not null,
+   Yefx                 int                  not null default (1),
+   SourceFSCode         varchar(50)          collate Chinese_PRC_CS_AS_KS_WS not null,
+   Sqqmye               decimal(20,2)        not null default (0),
+   Qqccgz               decimal(20,2)        not null default (0),
+   jfje                 decimal(20,2)        not null default (0),
+   dfje                 decimal(20,2)        not null default (0),
+   CrjeJF               decimal(20,2)        not null default (0),
+   CrjeDF               decimal(20,2)        not null default (0),
+   AjeJF                decimal(20,2)        not null default (0),
+   AjeDF                decimal(20,2)        not null default (0),
+   RjeJF                decimal(20,2)        not null default (0),
+   RjeDF                decimal(20,2)        not null default (0),
+   TaxBase              decimal(20,2)        not null default (0),
+   PY1                  decimal(20,2)        not null default (0),
+   jfje1                decimal(20,2)        not null default (0),
+   dfje1                decimal(20,2)        not null default (0),
+   jfje2                decimal(20,2)        not null default (0),
+   dfje2                decimal(20,2)        not null default (0),
+   constraint PK_TBDETAIL primary key (ID, ProjectID)
+)
+go
+go
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[ISNullEmpty]') AND xtype IN ( N'FN', N'IF', N'TF' ) ) 
+   BEGIN
+       DROP FUNCTION [dbo].[ISNullEmpty]
+   END
+GO
+ 
+CREATE FUNCTION [dbo].[ISNullEmpty]
+(
+	@param1 varchar(max),
+	@param2 varchar(max)
+)
+RETURNS varchar(1000)
+AS
+BEGIN
+	return	case when len(isnull(@param1,''))=0 then @param2	else @param1	end;
+END
+
+GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[IndexSplterNumber]') AND xtype IN ( N'FN', N'IF', N'TF' ) ) 
+   BEGIN
+       DROP FUNCTION [dbo].[IndexSplterNumber]
+   END
+GO
+
+CREATE FUNCTION IndexSplterNumber
+(
+	@SourceSql varchar(8000),@StrSeprate varchar(10)
+)
+RETURNS int
+AS
+begin
+declare @i int,@ii int=0
+
+if(@SourceSql is not null)
+	set	@ii+=1
+
+set @SourceSql=rtrim(ltrim(@SourceSql))
+set @i=charindex(@StrSeprate,@SourceSql)
+
+while @i>=1
+begin
+	set @SourceSql=substring(@SourceSql,@i+1,len(@SourceSql)-@i)
+	set @i=charindex(@StrSeprate,@SourceSql)
+	set	@ii+=1	
+end
+	return	@ii--case when @ii>0 then @ii+1 else @ii end
+end
+
+GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[fn_SplitTSQL]') AND xtype IN ( N'FN', N'IF', N'TF' ) ) 
+   BEGIN
+       DROP FUNCTION [dbo].[fn_SplitTSQL]
+   END
+GO
+ 
+CREATE FUNCTION dbo.fn_SplitTSQL(@SourceSql varchar(8000),@StrSeprate varchar(10))
+	returns @temp table(code varchar(100)	COLLATE Chinese_PRC_CS_AS_KS_WS	NULL)
+as 
+begin
+declare @i int
+set @SourceSql=rtrim(ltrim(@SourceSql))
+set @i=charindex(@StrSeprate,@SourceSql)
+while @i>=1
+begin
+insert @temp values(left(@SourceSql,@i-1))
+set @SourceSql=substring(@SourceSql,@i+1,len(@SourceSql)-@i)
+set @i=charindex(@StrSeprate,@SourceSql)
+end
+if @SourceSql<>''
+insert @temp values(@SourceSql)
+return 
+end
+
+
+GO
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE type = 'P' AND name = 'PRO_THROW')
+   BEGIN
+       DROP  Procedure  PRO_THROW
+	END
+GO 
+Create PROCEDURE dbo.PRO_THROW
+		@projectid varchar(100),
+		@ErrorProcedure1	varchar(100)=''
+    AS  
+BEGIN  
+      
+    SET NOCOUNT ON;  
+        DECLARE   
+        @ErrorMessage    NVARCHAR(4000),  
+        @ErrorNumber     INT,  
+        @ErrorSeverity   INT,  
+        @ErrorState      INT,  
+        @ErrorLine       INT,  
+        @ErrorProcedure  NVARCHAR(200);  
+        SELECT   
+        @ErrorNumber = ERROR_NUMBER(),  
+        @ErrorSeverity = ERROR_SEVERITY(),  
+        @ErrorState = ERROR_STATE(),  
+        @ErrorLine = ERROR_LINE(), 
+        @ErrorProcedure = ISNULL(ISNULL(ERROR_PROCEDURE(), '-'),@ErrorProcedure1);  
+        SELECT @ErrorMessage = N'Error %d, Level %d, State %d, Procedure %s, Line %d, ' + 'Message: '+ ERROR_MESSAGE();  
+      
+	  EXEC dbo.LogWrongInfo @projectid,@ErrorProcedure
+
+    RAISERROR (  
+        @ErrorMessage,   
+        @ErrorSeverity,   
+        1,                 
+        @ErrorNumber,  
+        @ErrorSeverity,  
+        @ErrorState,  
+        @ErrorProcedure,  
+        @ErrorLine  
+        );  
+      
+END  
+
+
+GO
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE type = 'P' AND name = 'LogWrongInfo')
+   BEGIN
+       DROP  Procedure  LogWrongInfo
+	END
+GO
+
+CREATE PROC LogWrongInfo
+	@pid	 VARCHAR(1000),
+
+	--@ERROR_NUMBER	int,--返回错误号
+	--@ERROR_SEVERITY	int,--返回严重性
+	--@ERROR_STATE		int,--返回错误状态号
+	@ERROR_PROCEDURE	VARCHAR(255)--返回出现错误的存储过程或 触发器的名称
+	--@ERROR_LINE	int,--返回导致错误的例程中的行 号
+	--@ERROR_MESSAGE	VARCHAR(1000)	--返回错误消息的完整文本
+AS 
+BEGIN
+if (OBJECT_id('LogTable') is NULL)	
+BEGIN	--create table logtable
+	CREATE TABLE LogTable
+	( 
+	  ID              int identity(1,1),--错误序号
+	  Projectid	VARCHAR(1000),
+	  ErrorDateTime	DATETIME NOT NULL,
+	  ErrorNumber     int,--错误号
+	  ErrorSeverity   int,--严重性
+	  ErrorState      int,--错误状态号
+	  ErrorProducure  varchar(255),--出现错误的存储过程或 触发器的名称
+	  ErrorLine       int,--导致错误的例程中的行号
+	  ErrorMessage    varchar(1000)--错误消息的完整文本
+)END
+
+INSERT INTO LogTable values(@pid,GETDATE(),ERROR_NUMBER(),ERROR_SEVERITY(),ERROR_STATE(),@ERROR_PROCEDURE,ERROR_LINE(),ERROR_MESSAGE())
+
+END
+GO
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE type = 'P' AND name = 'UpdateTBDetailTBAuxJE')
+   BEGIN
+       DROP  Procedure  UpdateTBDetailTBAuxJE
+	END
+GO
+  
+Create proc UpdateTBDetailTBAuxJE(@pzEndDate date)
+ as
+ begin 
+;with  t0 as (select projectid,accountcode from account with(nolock)  where accountname='以前年度损益调整'	UNION ALL select  a.projectid,a.accountcode from account a with(nolock) inner join t0 on a.uppercode=t0.accountcode    and a.accountcode!=a.accountcode)
+,t1 as(select accountcode,syjz from dbo.Account where Syjz=0)
+,t2 as(select v.accountcode,v.FDetailID ,v.fllx,v.jfje,v.dfje,t1.syjz from dbo.tbvoucher v  with(nolock)   join  t1 on t1.accountcode  = v.AccountCode  where v.date<@pzEndDate)
+,t3 as(select distinct vo.AccountCode,sum(vo.jfje)jfje,sum(vo.dfje)dfje   from t2 vo where vo.fllx=1 and vo.syjz=1 AND	ACCOUNTCODE NOT in (select accountcode from t0) group by vo.AccountCode  
+        union all  select distinct vo.AccountCode,sum(vo.jfje)jfje,sum(vo.dfje)dfje  from t2  vo   where  (fllx=1 or fllx=2) 			and (syjz!=1 or ACCOUNTCODE in(select accountcode from t0))			group by AccountCode )
+update acc set acc.jfje=tv.jfje,acc.dfje=tv.dfje from dbo.TBDetail	acc with(nolock) join t3	tv on acc.accountcode=tv.AccountCode	and acc.isaux=0	and	acc.auxiliarycode=''	and acc.datatype=0
+
+
+IF object_id('tempdb..#auxje')  IS NOT NULL DROP TABLE #auxje
+
+;with  t10 as (select projectid,accountcode from account with(nolock)  where accountname='以前年度损益调整'	UNION ALL select  a.projectid,a.accountcode from account a with(nolock) inner join t10 on a.uppercode=t10.accountcode    and a.accountcode!=a.accountcode)
+,t11 as(select accountcode,syjz from dbo.Account where Syjz=0)
+,t12 as(select v.accountcode,v.FDetailID ,v.fllx,v.jfje,v.dfje,t11.syjz from dbo.tbvoucher v  with(nolock)   join  t11 on t11.accountcode  = v.AccountCode  where v.date<@pzEndDate)
+,t13 as( select	distinct	vo.AccountCode,vo.FDetailID,sum(vo.jfje)jfje,sum(vo.dfje)dfje 	from t12	vo where vo.fllx=1 and vo.syjz=1 		AND	ACCOUNTCODE NOT in (select accountcode from t10)	group by vo.AccountCode,vo.FDetailID
+	union all select	distinct	vo.AccountCode,vo.FDetailID,sum(vo.jfje)jfje,sum(vo.dfje)dfje 	from t12	vo 	WHERE (vo.FLLX=1 OR vo.FLLX=2) 			and (syjz!=1 or ACCOUNTCODE in(select accountcode from t10))	group by vo.AccountCode,vo.FDetailID )
+,t14 as ( select af.accountcode,af.AuxiliaryCode,sum(v.jfje)jfje,sum(v.dfje)dfje     from dbo.AuxiliaryFDetail af with(nolock)    inner join t13 v    on V.AccountCode=AF.accountcode AND AF.FDetailID=V.FDetailID AND AF.DATATYPE=0     group by af.accountcode,af.AuxiliaryCode  )  
+select ROW_NUMBER() OVER (ORDER BY accountcode) AS ID, accountcode,AuxiliaryCode,jfje,dfje into #auxje from t14 
+
+update  aux set aux.jfje=0,aux.dfje=0  from	dbo.TbAux aux  inner join #auxje AV on av.AccountCode COLLATE Chinese_PRC_CS_AS_KS_WS=aux.AccountCode  COLLATE Chinese_PRC_CS_AS_KS_WS  
+
+update  aux set aux.jfje=isnull(av.jfje,0),aux.dfje=isnull(av.dfje,0)  from	dbo.TbAux aux  inner join #auxje AV on av.AccountCode COLLATE Chinese_PRC_CS_AS_KS_WS=aux.AccountCode  COLLATE Chinese_PRC_CS_AS_KS_WS 
+	and av.AuxiliaryCode COLLATE Chinese_PRC_CS_AS_KS_WS=aux.AuxiliaryCode COLLATE Chinese_PRC_CS_AS_KS_WS 
+
+update ac1 set ac1.jfje1=ac2.jfje,ac1.dfje1=ac2.dfje From dbo.TBDetail ac1	with(nolock)  Inner join TBDetail ac2  with(nolock)  	on ac1.accountcode=ac2.accountcode	 and ac2.isaux=0 Where   ac1.isaux=0
+
+Update dbo.TBDetail set jfje2=jfje-jfje1,dfje2=dfje-dfje1  where   isaux=0
+ 
+select ROW_NUMBER() OVER (ORDER BY accountcode) AS ID,accountcode,fscode,kmsx,yefx          into #unauxje          from dbo.TbDetail with(nolock)       where auxiliarycode='' and datatype=0 and isaux=0    
+ 
+
+IF object_id('tempdb..#auxfscode')  IS NOT NULL DROP TABLE #auxfscode
+select ROW_NUMBER() OVER (ORDER BY accountcode) AS ID,accountcode,fscode,kmsx,yefx 
+into #auxfscode	from	dbo.TbDetail with(nolock) where	auxiliarycode='' and	datatype=0 and	isaux=0	 									
+MERGE DBO.TBAux AS AUX
+USING 	#auxfscode AS DET
+ON AUX.ACCOUNTCODE COLLATE Chinese_PRC_CS_AS_KS_WS=DET.ACCOUNTCODE	COLLATE Chinese_PRC_CS_AS_KS_WS
+WHEN MATCHED  
+THEN UPDATE SET aux.fscode=det.fscode,aux.KMSX=det.kmsx,aux.yefx=det.yefx;
+  --ByTBAuxUpdateTbDetailJFJEDFJE
+update  ad set ad.jfje=isnull(av.jfje,0),ad.dfje=isnull(av.dfje,0) from	dbo.tbdetail ad	with(nolock) 
+    inner join dbo.TbAux av	with(nolock) 
+    on av.AccountCode COLLATE Chinese_PRC_CS_AS_KS_WS=ad.AccountCode  COLLATE Chinese_PRC_CS_AS_KS_WS
+	and av.AuxiliaryCode COLLATE Chinese_PRC_CS_AS_KS_WS=ad.AuxiliaryCode COLLATE Chinese_PRC_CS_AS_KS_WS   
+ 
+ end
+GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE type = 'P' AND name = 'InitTbAccTable')
+   BEGIN
+       DROP  Procedure  InitTbAccTable
+	END
+GO
+
+CREATE Procedure [dbo].[InitTbAccTable](	@ProjectID nvarchar(50))
+AS
+begin try	
+SET NOCOUNT ON
+SET XACT_ABORT ON
+truncate table tbdetail
+declare @tempTable1 table 
+(
+	id int identity(1,1),
+    AccountCode  varchar(255) collate Chinese_PRC_CS_AS_KS_WS,
+    AccountName varchar(255),
+    Fs  varchar(255),
+    FsCode varchar(255) collate Chinese_PRC_CS_AS_KS_WS,
+    Yefx int,
+	Kmsx int
+)insert into @tempTable1
+select distinct C.Accountcode,C.AccountName,G.FsName,G.FsCode,G.Yefx,G.kmsx from dbo.TBFS G with(nolock)
+inner join dbo.account C with(nolock) on (C.AccountName = G.FsName) --此处不能使用like语法及实际业务冲突
+where (C.Jb=1) and G.ismx=1 
+insert into @tempTable1
+select distinct C.AccountCode,C.AccountName,F.Fs,G.FsCode,G.Yefx,G.Kmsx
+From dbo.account C with(nolock),	EASKmdzb F with(nolock) ,	dbo.TBFS G with(nolock)
+where   	  (C.AccountName = F.Note)--此处不能使用like语法及实际业务冲突
+ and (F.Fs=G.FsName) and (C.jb=1) and G.ismx=1
+ and C.AccountName not in (select AccountName from @tempTable1) --以避免与第一段insert into @tempTable1插入数据重复
+ select distinct NEWID() IID ,DB_NAME() AS projectid,a.AccountCode,space(0) AS AuxiliaryCode,space(0) AS SourceFSCode,
+ a.AccountName as AccAuxName,a.jb as TBType,0 AS IsMx,isnull(a.UpperCode,isnull(b.fscode,space(0))) TBGrouping,a.Ncye AS Sqqmye,
+isnull(b.FsCode,space(0))fscode,isnull(b.yefx,1)yefx,isnull(b.kmsx,0)kmsx,0 AS isAux,a.ismx AS isAccMx,0 AS DataType
+into #p1  from dbo.Account	a with(nolock)
+left	join	@tempTable1	b
+on left(a.accountcode,len(b.accountcode)) collate Chinese_PRC_CS_AS_KS_WS=b.AccountCode collate Chinese_PRC_CS_AS_KS_WS  
+alter table #p1 add ID int IDENTITY(1,1)
+declare @leve int=1000
+declare @ix int=1
+declare @ixend int=@leve 
+while (1=1)begin
+		insert into dbo.TBDetail (ID,projectid,AccountCode,AuxiliaryCode,SourceFSCode,AccAuxName,TBType,IsMx,TBGrouping,Sqqmye,
+		fscode,yefx,kmsx,isAux,isAccMx,DataType)
+		select IID,projectid,AccountCode,AuxiliaryCode,SourceFSCode,AccAuxName,TBType,IsMx,TBGrouping,Sqqmye,
+			fscode,yefx,kmsx,isAux,isAccMx,DataType
+				from #p1
+					where id BETWEEN @ix	and @ixend
+	if @@ROWCOUNT=0
+		break;
+	set @ix+=@leve 
+	set	@ixend+=@leve 
+end
+
+END TRY
+
+BEGIN CATCH
+	EXEC DBO.[PRO_THROW]  'th','InitTbAccTable'
+END CATCH
+
+GO
+
+if exists (select 1
+            from  sysobjects
+           where  id = object_id('kjqj')
+            and   type = 'U')
+   drop table kjqj
+
+CREATE TABLE kjqj    ( ProjectID VARCHAR(100),CustomerCode VARCHAR(100),CustomerName VARCHAR(100),     BeginDate date,EndDate date, KJDate    VARCHAR(4) NOT NULL    , CONSTRAINT PK_KJQJ PRIMARY KEY(ProjectID, KJDate)    )
+go
+IF OBJECT_ID (N'dbo.Accountclass') IS NOT NULL
+	DROP TABLE dbo.Accountclass
+GO
+
+CREATE TABLE dbo.Accountclass
+	(
+	  Accountname VARCHAR (50) NOT NULL
+	, syjz        INT NOT NULL
+	, CONSTRAINT PK_Accountclass PRIMARY KEY (Accountname)
+	)
+ 
+
+
+
+GO
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'保单红利支出'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'保费收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'本年利润'
+	, 2
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'补贴收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'财务费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'分保费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'分出保费'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'公允价值变动损益'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'管理费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'汇兑损益'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'勘探费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'利润分配'
+	, 2
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'利息收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'利息支出'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'赔付支出'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'赔付支出净额'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'其他收益'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'其他业务成本'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'其他业务收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'其他业务支出'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'手续费及佣金收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'手续费及佣金支出'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'税金及附加'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'所得税'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'所得税费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'摊回保险责任准备金'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'摊回分保费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'摊回赔付支出'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'提取保险合同准备金净额'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'提取保险责任准备金'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'提取未到期责任准备金'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'投资收益'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'退保金'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'销售费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'研发费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'已赚保费'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'以前年度损益调整'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'营业成本'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'营业费用'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'营业收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'营业税金及附加'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'营业外收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'营业外支出'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'营业务税金及附加'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'主营业务成本'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'主营业务收入'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'主营业务税金及附加'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'资产处置收益'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'资产处置损失'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'资产处置损益'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'资产减值损失'
+	, 1
+	)
+GO
+
+INSERT INTO dbo.Accountclass
+	(
+	Accountname
+	, syjz
+	)
+VALUES
+	(
+	'租赁收入'
+	, 1
+	)
+GO
+
+
+
+IF OBJECT_ID (N'dbo.EASKMDZB') IS NOT NULL
+	DROP TABLE dbo.EASKMDZB
+GO
+
+CREATE TABLE dbo.EASKMDZB
+	(
+	  ID   INT IDENTITY NOT NULL
+	, Note NVARCHAR (255) NULL
+	, FS   NVARCHAR (255) NULL
+	, CONSTRAINT PK_EASKMDZB PRIMARY KEY (ID)
+	)
+GO
+
+
+
+
+IF OBJECT_ID (N'dbo.TBFS') IS NOT NULL
+	DROP TABLE dbo.TBFS
+GO
+
+CREATE TABLE dbo.TBFS
+	(
+	  ProjectID   VARCHAR (100) NOT NULL
+	, FSCode      VARCHAR (50) NOT NULL
+	, FsName      VARCHAR (100) NOT NULL
+	, FSType      INT NOT NULL
+	, TBType      INT NOT NULL
+	, IsMx        INT NOT NULL
+	, Kmsx        VARCHAR (100) NOT NULL
+	, Yefx        INT DEFAULT ((1)) NOT NULL
+	, TBGrouping  VARCHAR (50) NOT NULL
+	, Sqqmye      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, Qqccgz      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, jfje        DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, dfje        DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, CrjeJF      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, CrjeDF      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, AjeJF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, AjeDF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, RjeJF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, RjeDF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, TaxBase     DECIMAL (20, 2) NOT NULL
+	, YearEarlier DECIMAL (20, 2) NOT NULL
+	, PY1         DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, PyTaxBase   DECIMAL (20, 2) NOT NULL
+	, Random      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, GrossPretax INT DEFAULT ((1)) NOT NULL
+	, jfje1       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, dfje1       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, jfje2       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, dfje2       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, Memo        NVARCHAR (500) NOT NULL
+	, CONSTRAINT PK_TBFS PRIMARY KEY (ProjectID, FSCode)
+	)
+GO
+
+IF OBJECT_ID (N'dbo.Pack_TBFS') IS NOT NULL
+	DROP TABLE dbo.Pack_TBFS
+GO
+
+CREATE TABLE dbo.Pack_TBFS
+	(
+	  ProjectID   VARCHAR (100) NOT NULL
+	, FSCode      VARCHAR (50) NOT NULL
+	, FsName      VARCHAR (100) NOT NULL
+	, FSType      INT NOT NULL
+	, TBType      INT NOT NULL
+	, IsMx        INT NOT NULL
+	, Kmsx        VARCHAR (100) NOT NULL
+	, Yefx        INT DEFAULT ((1)) NOT NULL
+	, TBGrouping  VARCHAR (50) NOT NULL
+	, Sqqmye      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, Qqccgz      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, jfje        DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, dfje        DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, CrjeJF      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, CrjeDF      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, AjeJF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, AjeDF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, RjeJF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, RjeDF       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, TaxBase     DECIMAL (20, 2) NOT NULL
+	, YearEarlier DECIMAL (20, 2) NOT NULL
+	, PY1         DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, PyTaxBase   DECIMAL (20, 2) NOT NULL
+	, Random      DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, GrossPretax INT DEFAULT ((1)) NOT NULL
+	, jfje1       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, dfje1       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, jfje2       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, dfje2       DECIMAL (20, 2) DEFAULT ((0)) NOT NULL
+	, Memo        NVARCHAR (500) NOT NULL
+	, CONSTRAINT PK_Pack_TBFS PRIMARY KEY (ProjectID, FSCode)
+	)
+GO
+ 
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '50000', '资产', 1, 1, 0, '5', 1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '50100', '流动资产', 1, 2, 0, '5', 1, '50000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '50200', '非流动资产', 1, 2, 0, '5', 1, '50000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '50400', '存货净额', 1, 3, 0, '54', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '51100', '货币资金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '51200', '结算备付金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '51300', '拆出资金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52100', '以公允价值计量且其变动计入当期损益的金融资产', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52200', '可供出售金融资产', 1, 3, 0, '52', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52200YZ', '可供出售金融资产', 1, 4, 1, '52', 1, '52200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52200ZZ', '可供出售金融资产减值准备', 1, 4, 1, '50', -1, '52200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52300', '持有至到期投资', 1, 3, 0, '52', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52300YZ', '持有至到期投资', 1, 4, 1, '52', 1, '52300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52300ZZ', '持有至到期投资减值准备', 1, 4, 1, '50', -1, '52300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52400', '应收股利', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52500', '应收利息', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52600', '买入返售金融资产', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52700', '发放贷款及垫款', 1, 3, 1, '52', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '52800', '衍生金融资产', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53100', '应收票据', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53100YZ', '应收票据', 1, 4, 1, '53', 1, '53100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53100ZZ', '应收票据坏账准备', 1, 4, 1, '50', -1, '53100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53200', '应收账款', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53200YZ', '应收账款', 1, 4, 1, '53', 1, '53200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53200ZZ', '应收账款坏账准备', 1, 4, 1, '50', -1, '53200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53300', '预付款项', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53300YZ', '预付款项', 1, 4, 1, '53', 1, '53300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53300ZZ', '预付账款坏账准备', 1, 4, 1, '50', -1, '53300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53400', '其他应收款', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53400YZ', '其他应收款', 1, 4, 1, '53', 1, '53400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53400ZZ', '其他应收款坏账准备', 1, 4, 1, '50', -1, '53400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53500', '应收保费', 1, 3, 1, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53600', '应收分保账款', 1, 3, 1, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53700', '长期应收款', 1, 3, 0, '53', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53700YZ', '长期应收款', 1, 4, 1, '53', 1, '53700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53700ZZ', '长期应收款坏账准备', 1, 4, 1, '50', -1, '53700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '53800', '应收分保合同准备金', 1, 3, 1, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54000', '存货', 1, 4, 0, '54', 1, '50400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54100', '存货(不分项)', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54200', '原、辅材料', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54300', '周转材料', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54400', '在产品、在制品', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54500', '产成品、库存商品', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54600', '委托加工、发出商品', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54700', '已完工尚未结算款', 1, 5, 0, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54700A', '工程施工', 1, 6, 1, '54', 1, '54700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54700B', '工程结算', 1, 6, 1, '54', -1, '54700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '54900', '存货跌价准备', 1, 4, 1, '50', -1, '50400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '55100', '长期股权投资', 1, 3, 0, '55', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '55100YZ', '长期股权投资', 1, 4, 1, '55', 1, '55100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '55100ZZ', '长期股权投资减值准备', 1, 4, 1, '50', -1, '55100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56100', '投资性房地产', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56100GDYZ', '投资性房地产原值', 1, 4, 1, '56', 1, '56100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56100GDZJ', '投资性房地产累计折旧（摊销）', 1, 4, 1, '56', -1, '56100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56100JZZB', '投资性房地产减值准备', 1, 4, 1, '50', -1, '56100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56200', '固定资产', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56200GDYZ', '固定资产原值', 1, 4, 1, '56', 1, '56200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56200GDZJ', '固定资产累计折旧', 1, 4, 1, '56', -1, '56200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56200JZZB', '固定资产减值准备', 1, 4, 1, '50', -1, '56200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56300', '在建工程', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56300YZ', '在建工程', 1, 4, 1, '56', 1, '56300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56300ZZ', '在建工程减值准备', 1, 4, 1, '50', -1, '56300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56400', '工程物资', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56400YZ', '工程物资', 1, 4, 1, '56', 1, '56400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56400ZZ', '工程物资减值准备', 1, 4, 1, '50', -1, '56400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '56500', '固定资产清理', 1, 3, 1, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57100', '无形资产', 1, 3, 0, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57100GDYZ', '无形资产原值', 1, 4, 1, '57', 1, '57100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57100GDZJ', '无形资产累计摊销', 1, 4, 1, '57', -1, '57100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57100JZZB', '无形资产减值准备', 1, 4, 1, '50', -1, '57100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57200', '开发支出', 1, 3, 1, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57300', '商誉', 1, 3, 0, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57300YZ', '商誉', 1, 4, 1, '57', 1, '57300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57300ZZ', '商誉减值准备', 1, 4, 1, '50', -1, '57300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '57400', '长期待摊费用', 1, 3, 1, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58000', '划分为持有待售的资产', 1, 3, 1, '58', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58100', '一年内到期的非流动资产', 1, 3, 1, '58', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58200', '其他流动资产', 1, 3, 1, '58', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58300', '油气资产', 1, 3, 0, '58', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58300YZ', '油气资产', 1, 4, 1, '58', 1, '58300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58300ZZ', '油气资产减值准备', 1, 4, 1, '50', -1, '58300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58400', '生产性生物资产', 1, 3, 0, '58', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58400YZ', '生产性生物资产', 1, 4, 1, '58', 1, '58400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58400ZZ', '生产性生物资产减值准备', 1, 4, 1, '50', -1, '58400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '58900', '其他非流动资产', 1, 3, 1, '58', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '59100', '递延所得税资产', 1, 3, 1, '59', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '60000', '负债', 1, 1, 0, '6', -1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '60100', '流动负债', 1, 2, 0, '6', -1, '60000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '60200', '非流动负债', 1, 2, 0, '6', -1, '60000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61100', '短期借款', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61200', '以公允价值计量且其变动计入当期损益的金融负债', 1, 3, 1, '62', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61300', '长期借款', 1, 3, 1, '61', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61400', '应付债券', 1, 3, 1, '61', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61500', '应付利息', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61600', '向中央银行借款', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61700', '吸收存款及同业存放', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61800', '拆入资金', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '61900', '卖出回购金融资产款', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '62100', '应付票据', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '62200', '应付账款', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '62300', '衍生金融负债', 1, 3, 1, '62', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '62400', '长期应付款', 1, 3, 1, '63', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '63100', '预收款项', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '63300', '专项应付款', 1, 3, 1, '63', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '63900', '应付手续费及佣金', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '64100', '应付职工薪酬', 1, 3, 1, '64', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '64200', '长期应付职工薪酬', 1, 3, 1, '64', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '65100', '应交税费', 1, 3, 1, '65', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '66100', '其他应付款', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '66200', '应付股利', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '67100', '预计负债', 1, 3, 1, '67', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '67200', '递延收益', 1, 3, 1, '67', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '68000', '划分为持有待售的负债', 1, 3, 1, '68', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '68100', '一年内到期的非流动负债', 1, 3, 1, '68', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '68200', '其他流动负债', 1, 3, 1, '68', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '68300', '其他非流动负债', 1, 3, 1, '68', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '69100', '递延所得税负债', 1, 3, 1, '69', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '70000', '所有者权益', 1, 1, 0, '7', -1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '70100', '归属于母公司所有者权益', 1, 2, 0, '7', -1, '70000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '70200', '少数股东权益', 1, 2, 1, '100', -1, '70000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '71100', '实收资本', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '71200', '其他权益工具', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '72100', '资本公积', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '72200', '库存股', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '72300', '专项储备', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '73100', '盈余公积', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '73200', '一般风险准备', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '74000', '未分配利润', 1, 3, 0, '74', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '74100', '未分配利润', 1, 4, 1, '74', -1, '74000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '74200', '本年利润（及审计调整）', 1, 4, 1, '101', -1, '74000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '75000', '其他综合收益', 1, 3, 0, '75', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '75100', '其他综合收益的税后净额', 1, 4, 0, '75', -1, '75000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '75100A', '以后不能重分类进损益的其他综合收益', 1, 5, 1, '75', -1, '75100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '75100B', '以后将重分类进损益的其他综合收益', 1, 5, 1, '75', -1, '75100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '80000', '净利润', 2, 1, 0, '8', -1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '80001', '未审报表净利润（手工输入）', 2, 1, 0, '101', 1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '80100', '利润总额', 2, 2, 0, '8', -1, '80000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '80200', '营业利润', 2, 3, 0, '88', -1, '80100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '80300', '少数股东损益', 2, 2, 1, '100', 1, '80000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '80400', '其中:被合并方在合并日以前实现的净利润', 2, 2, 1, '100', 1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '81000', '营业总收入', 2, 4, 0, '8', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '81100', '营业收入', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '81200', '利息收入', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '81300', '已赚保费', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '81400', '手续费及佣金收入', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82000', '营业总成本', 2, 4, 0, '8', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82100', '营业成本', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82200', '利息支出', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82300', '手续费及佣金支出', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82400', '退保金', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82500', '赔付支出净额', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82600', '提取保险合同准备金净额', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82700', '保单红利支出', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82800', '分保费用', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '82900', '税金及附加', 2, 4, 1, '82', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '83000', '期间费用', 2, 4, 0, '8', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '83100', '销售费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '83200', '管理费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '83300', '财务费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '83400', '研发费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84100', '资产减值损失', 2, 4, 1, '84', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84200', '公允价值变动收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84300', '投资收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84400', '汇兑收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84500', '其他收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84600', '资产处置收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '85000', '营业外收支净额', 2, 3, 0, '85', -1, '80100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '85100', '营业外收入', 2, 4, 1, '85', -1, '85000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '85200', '营业外支出', 2, 4, 1, '85', 1, '85000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '88100', '所得税费用', 2, 2, 1, '88', 1, '80000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '50000', '资产', 1, 1, 0, '5', 1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '50100', '流动资产', 1, 2, 0, '5', 1, '50000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '50200', '非流动资产', 1, 2, 0, '5', 1, '50000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '50400', '存货净额', 1, 3, 0, '54', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '51100', '货币资金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '51200', '结算备付金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '51300', '拆出资金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '51400', '融出资金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '51500', '存出保证金', 1, 3, 1, '51', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52100', '以公允价值计量且其变动计入当期损益的金融资产', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52200', '可供出售金融资产', 1, 3, 0, '52', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52200YZ', '可供出售金融资产', 1, 4, 1, '52', 1, '52200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52200ZZ', '可供出售金融资产减值准备', 1, 4, 1, '50', -1, '52200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52300', '持有至到期投资', 1, 3, 0, '52', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52300YZ', '持有至到期投资', 1, 4, 1, '52', 1, '52300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52300ZZ', '持有至到期投资减值准备', 1, 4, 1, '50', -1, '52300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52400', '应收股利', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52500', '应收利息', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52600', '买入返售金融资产', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52700', '发放贷款及垫款', 1, 3, 1, '52', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '52800', '衍生金融资产', 1, 3, 1, '52', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53100', '应收票据', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53100YZ', '应收票据', 1, 4, 1, '53', 1, '53100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53100ZZ', '应收票据坏账准备', 1, 4, 1, '50', -1, '53100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53200', '应收账款', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53200YZ', '应收账款', 1, 4, 1, '53', 1, '53200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53200ZZ', '应收账款坏账准备', 1, 4, 1, '50', -1, '53200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53300', '预付款项', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53300YZ', '预付款项', 1, 4, 1, '53', 1, '53300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53300ZZ', '预付账款坏账准备', 1, 4, 1, '50', -1, '53300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53400', '应收款项', 1, 3, 0, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53400YZ', '应收款项', 1, 4, 1, '53', 1, '53400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53400ZZ', '应收款项坏账准备', 1, 4, 1, '50', -1, '53400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53500', '应收保费', 1, 3, 1, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53600', '应收分保账款', 1, 3, 1, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53700', '长期应收款', 1, 3, 0, '53', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53700YZ', '长期应收款', 1, 4, 1, '53', 1, '53700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53700ZZ', '长期应收款坏账准备', 1, 4, 1, '50', -1, '53700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '53800', '应收分保合同准备金', 1, 3, 1, '53', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54000', '存货', 1, 4, 0, '54', 1, '50400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54100', '存货(不分项)', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54200', '原、辅材料', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54300', '周转材料', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54400', '在产品、在制品', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54500', '产成品、库存商品', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54600', '委托加工、发出商品', 1, 5, 1, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54700', '已完工尚未结算款', 1, 5, 0, '54', 1, '54000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54700A', '工程施工', 1, 6, 1, '54', 1, '54700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54700B', '工程结算', 1, 6, 1, '54', -1, '54700', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '54900', '存货跌价准备', 1, 4, 1, '50', -1, '50400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '55100', '长期股权投资', 1, 3, 0, '55', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '55100YZ', '长期股权投资', 1, 4, 1, '55', 1, '55100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '55100ZZ', '长期股权投资减值准备', 1, 4, 1, '50', -1, '55100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56100', '投资性房地产', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56100GDYZ', '投资性房地产原值', 1, 4, 1, '56', 1, '56100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56100GDZJ', '投资性房地产累计折旧（摊销）', 1, 4, 1, '56', -1, '56100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56100JZZB', '投资性房地产减值准备', 1, 4, 1, '50', -1, '56100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56200', '固定资产', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56200GDYZ', '固定资产原值', 1, 4, 1, '56', 1, '56200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56200GDZJ', '固定资产累计折旧', 1, 4, 1, '56', -1, '56200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56200JZZB', '固定资产减值准备', 1, 4, 1, '50', -1, '56200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56300', '在建工程', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56300YZ', '在建工程', 1, 4, 1, '56', 1, '56300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56300ZZ', '在建工程减值准备', 1, 4, 1, '50', -1, '56300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56400', '工程物资', 1, 3, 0, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56400YZ', '工程物资', 1, 4, 1, '56', 1, '56400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56400ZZ', '工程物资减值准备', 1, 4, 1, '50', -1, '56400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '56500', '固定资产清理', 1, 3, 1, '56', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57100', '无形资产', 1, 3, 0, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57100GDYZ', '无形资产原值', 1, 4, 1, '57', 1, '57100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57100GDZJ', '无形资产累计摊销', 1, 4, 1, '57', -1, '57100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57100JZZB', '无形资产减值准备', 1, 4, 1, '50', -1, '57100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57200', '开发支出', 1, 3, 1, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57300', '商誉', 1, 3, 0, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57300YZ', '商誉', 1, 4, 1, '57', 1, '57300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57300ZZ', '商誉减值准备', 1, 4, 1, '50', -1, '57300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '57400', '长期待摊费用', 1, 3, 1, '57', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58000', '持有待售资产', 1, 3, 1, '58', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58100', '一年内到期的非流动资产', 1, 3, 1, '58', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58200', '其他资产', 1, 3, 1, '58', 1, '50100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58300', '油气资产', 1, 3, 0, '58', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58300YZ', '油气资产', 1, 4, 1, '58', 1, '58300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58300ZZ', '油气资产减值准备', 1, 4, 1, '50', -1, '58300', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58400', '生产性生物资产', 1, 3, 0, '58', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58400YZ', '生产性生物资产', 1, 4, 1, '58', 1, '58400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58400ZZ', '生产性生物资产减值准备', 1, 4, 1, '50', -1, '58400', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '58900', '其他非流动资产', 1, 3, 1, '58', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '59100', '递延所得税资产', 1, 3, 1, '59', 1, '50200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '60000', '负债', 1, 1, 0, '6', -1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '60100', '流动负债', 1, 2, 0, '6', -1, '60000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '60200', '非流动负债', 1, 2, 0, '6', -1, '60000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61100', '短期借款', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61200', '以公允价值计量且其变动计入当期损益的金融负债', 1, 3, 1, '62', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61300', '长期借款', 1, 3, 1, '61', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61400', '应付债券', 1, 3, 1, '61', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61500', '应付利息', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61600', '向中央银行借款', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61700', '吸收存款及同业存放', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61800', '拆入资金', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '61900', '卖出回购金融资产款', 1, 3, 1, '61', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '62100', '应付票据', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '62200', '应付账款', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '62300', '衍生金融负债', 1, 3, 1, '62', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '62400', '长期应付款', 1, 3, 1, '63', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '62500', '应付短期融资款', 1, 3, 1, '62', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '62600', '代理买卖证券款', 1, 3, 1, '62', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '62700', '代理承销证券款', 1, 3, 1, '62', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '63100', '预收款项', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '63300', '专项应付款', 1, 3, 1, '63', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '63900', '应付手续费及佣金', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '64100', '应付职工薪酬', 1, 3, 1, '64', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '64200', '长期应付职工薪酬', 1, 3, 1, '64', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '65100', '应交税费', 1, 3, 1, '65', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '66100', '应付款项', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '66200', '应付股利', 1, 3, 1, '63', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '67100', '预计负债', 1, 3, 1, '67', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '67200', '递延收益', 1, 3, 1, '67', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '68000', '持有待售负债', 1, 3, 1, '68', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '68100', '一年内到期的非流动负债', 1, 3, 1, '68', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '68200', '其他负债', 1, 3, 1, '68', -1, '60100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '68300', '其他非流动负债', 1, 3, 1, '68', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '69100', '递延所得税负债', 1, 3, 1, '69', -1, '60200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '70000', '所有者权益', 1, 1, 0, '7', -1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '70100', '归属于母公司所有者权益', 1, 2, 0, '7', -1, '70000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '70200', '少数股东权益', 1, 2, 1, '100', -1, '70000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '71100', '实收资本', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '71200', '其他权益工具', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '72100', '资本公积', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '72200', '库存股', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '72300', '专项储备', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '73100', '盈余公积', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '73200', '一般风险准备', 1, 3, 1, '71', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '74000', '未分配利润', 1, 3, 0, '74', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '74100', '未分配利润', 1, 4, 1, '74', -1, '74000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '74200', '本年利润（及审计调整）', 1, 4, 1, '101', -1, '74000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '75000', '其他综合收益', 1, 3, 0, '75', -1, '70100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '75100', '其他综合收益的税后净额', 1, 4, 0, '75', -1, '75000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '75100A', '以后不能重分类进损益的其他综合收益', 1, 5, 1, '75', -1, '75100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '75100B', '以后将重分类进损益的其他综合收益', 1, 5, 1, '75', -1, '75100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '80000', '净利润', 2, 1, 0, '8', -1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '80001', '未审报表净利润（手工输入）', 2, 1, 0, '101', 1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '80100', '利润总额', 2, 2, 0, '8', -1, '80000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '80200', '营业利润', 2, 3, 0, '88', -1, '80100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '80300', '少数股东损益', 2, 2, 1, '100', 1, '80000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '80400', '其中:被合并方在合并日以前实现的净利润', 2, 2, 1, '100', 1, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '81000', '营业总收入', 2, 4, 0, '8', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '81100', '其他业务收入', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '81200', '利息收入', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '81300', '已赚保费', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '81400', '手续费及佣金收入', 2, 5, 1, '81', -1, '81000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82000', '营业总成本', 2, 4, 0, '8', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82100', '其他业务成本', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82200', '利息支出', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82300', '手续费及佣金支出', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82400', '退保金', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82500', '赔付支出净额', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82600', '提取保险合同准备金净额', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82700', '保单红利支出', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82800', '分保费用', 2, 5, 1, '82', 1, '82000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '82900', '税金及附加', 2, 4, 1, '82', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '83000', '期间费用', 2, 4, 0, '8', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '83100', '销售费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '83200', '业务及管理费', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '83300', '财务费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '83400', '研发费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84100', '资产减值损失', 2, 4, 1, '84', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84200', '公允价值变动收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84300', '投资收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84400', '汇兑收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84500', '其他收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84600', '资产处置收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '85000', '营业外收支净额', 2, 3, 0, '85', -1, '80100', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '85100', '营业外收入', 2, 4, 1, '85', -1, '85000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '85200', '营业外支出', 2, 4, 1, '85', 1, '85000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+GO
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '88100', '所得税费用', 2, 2, 1, '88', 1, '80000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, '')
+GO
+
+
+--EASKMDZB
+
+INSERT INTO EASKMDZB (Note, FS) VALUES ('库存现金', '货币资金')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('现金', '货币资金')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('银行存款', '货币资金')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他货币资金', '货币资金')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它货币资金', '货币资金')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('预付帐款', '预付款项')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('预付账款', '预付款项')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它应收款', '其他应收款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收补贴款', '其他应收款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('受托代销商品', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('材料采购', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('物资采购', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('在途物资', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('原材料', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('自制半成品', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('材料成本差异', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('半成品', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('产品成本差异', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('库存商品', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('产成品', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('发出商品', '委托加工、发出商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('委托代销商品', '委托加工、发出商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('分期收款发出商品', '委托加工、发出商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('商品进销差价', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('委托加工物资', '委托加工、发出商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('包装物', '周转材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('低值易耗品', '周转材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('消耗性生物资产', '原、辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('消耗性生物资产跌价准备', '存货跌价准备')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('经营费用', '销售费用')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('生产成本', '在产品、在制品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('制造费用', '在产品、在制品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收帐款', '应收账款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('产品销售收入', '营业收入')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('劳务成本', '在产品、在制品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('研发支出', '开发支出')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('投资性房地产', '投资性房地产原值')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('未实现融资收益', '长期应收款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('累计折旧', '固定资产累计折旧')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('生产性生物资产累计折旧', '生产性生物资产')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('累计折耗', '油气资产')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('累计摊销', '无形资产')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('无形资产', '无形资产原值')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('预收账款', '预收款项')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('预收帐款', '预收款项')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('预收货款', '预收款项')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它应付款', '其他应付款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付帐款', '应付账款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付工资', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付福利费', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应交税金', '应交税费')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他应交款', '应交税费')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他未交款', '应交税费')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它应交款', '应交税费')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它未交款', '应交税费')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('未确认融资费用', '长期应付款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('股本', '实收资本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('实收资本（股本）', '实收资本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('实收资本(股本)', '实收资本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('实收资本/股本)', '实收资本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('实收资本\股本)', '实收资本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('本年利润', '未分配利润')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('利润分配', '未分配利润')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('以前年度损益调整', '未分配利润')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('主营业务收入', '营业收入')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他业务收入', '营业收入')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('主营业务税金及附加', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('主营业务成本', '营业成本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他业务成本', '营业成本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他业务支出', '营业成本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('所得税', '所得税费用')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('营业费用', '销售费用')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('无形资产累计摊销', '无形资产')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('补贴收入', '营业外收入')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('辅助材料', '原辅材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('实收资本（或股本）', '实收资本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('销售折扣与折让', '营业收入')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('产品销售成本', '营业成本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('投资性房地产累计折旧', '投资性房地产累计折旧（摊销）')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('预付货款', '预付款项')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('产品销售税金', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('销售税金', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付工资及福利费', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付工资福利费', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('开发产品', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('出租开发产品', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('递延税款借项', '递延所得税资产')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('递延税款贷项', '递延所得税负债')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('开发成本', '在产品、在制品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('农业生产成本', '在产品、在制品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收账款坏帐准备', '应收账款坏账准备')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收帐款坏账准备', '应收账款坏账准备')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收帐款坏帐准备', '应收账款坏账准备')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('备用金', '其他应收款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它应收款坏帐准备', '其他应收款坏账准备')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他应收款坏帐准备', '其他应收款坏账准备')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收票据坏帐准备', '应收票据坏账准备')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('农产品', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('委托加工材料', '托管存货')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('商品进销差价', '产成品、库存商品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付职工福利费', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付职工工资', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收销售款', '应收账款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应收销货款', '应收账款')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('投资损益', '投资收益')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('商品销售收入', '营业收入')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('商品销售成本', '营业成本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('商品销售税金', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('商品销售税金及附加', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('公允价值变动损益', '公允价值变动收益')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付包干工资', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它业务成本', '营业成本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它业务支出', '营业成本')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他业务税金及附加', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它业务税金及附加', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('固定资产', '固定资产原值')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('累计摊销', '无形资产累计摊销')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('低值易耗品摊销', '周转材料')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('投资性房地产累计摊销', '投资性房地产累计折旧（摊销）')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('在产品', '在产品、在制品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('在制品', '在产品、在制品')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('营业税金及附加', '税金及附加')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('应付职工新酬', '应付职工薪酬')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其他长期负债', '其他非流动负债')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('其它长期负债', '其他非流动负债')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('待摊费用', '其他流动资产')
+GO
+INSERT INTO EASKMDZB (Note, FS) VALUES ('营业务税金及附加', '税金及附加')
+GO
