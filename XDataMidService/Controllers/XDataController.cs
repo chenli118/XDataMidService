@@ -126,7 +126,7 @@ namespace XDataMidService.Controllers
                 sb.AppendFormat(" insert into  {1}.{2}.dbo.[ACCOUNT](ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz) select '{0}' as ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz from ACCOUNT ", projectID, linkSvrName,dbName);
                 sb.Append(" go ");
                 sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' ", projectID, linkSvrName,dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](VoucherID,ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID) select  NEWID() as VoucherID, '{0}' as ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID from  TBVoucher ", projectID, linkSvrName,dbName);
+                sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](VoucherID,ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID) select  NEWID() as VoucherID, '{0}' as ProjectID,Clientid,IncNo,Date,left(CONVERT(varchar(12) ,Date, 112),6) as Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID from  TBVoucher ", projectID, linkSvrName,dbName);
                 sb.Append(" go ");
                 sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName,dbName);
                 sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear from AuxiliaryFDetail ", projectID, linkSvrName,dbName);
@@ -151,6 +151,7 @@ namespace XDataMidService.Controllers
                 }
                 dapper.Execute(" update  xdata.dbo.XFiles set datastatus =2 where xid=" + xfile.XID, null); 
             }
+            StaticData.X2EasList[key] = 0;
             response.HttpStatusCode = 500;
             response.ResultContext = string.Format("{0}项目导入EAS失败", xfile.ProjectID, xfile.CustomID);
             _logger.LogError(response.ResultContext);

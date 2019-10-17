@@ -405,7 +405,7 @@ namespace XDataMidService.BPImp
             {
                 string jzpzSQL = " truncate table TBVoucher" +
                     " insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx,FDetailID) ";
-                jzpzSQL += "select  newid() as VoucherID,'" + xfile.CustomName + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
+                jzpzSQL += "select  newid() as VoucherID,'" + xfile.CustomName + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj  as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
                    " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
                    " case when jd = '贷' then rmb else 0 end as dfje,  " +
                    " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
