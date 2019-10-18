@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace XDataMidService
@@ -14,7 +15,22 @@ namespace XDataMidService
             var builder = new ConfigurationBuilder().AddJsonFile("WebApp.Config.json", optional: false, reloadOnChange: true);
             var configure = builder.Build();    
             return  configure.GetConnectionString(confKey);
-        }        
+        }
+        public static string GetLocalDbNameByXFile(XDataMidService.Models.xfile xfile)
+        {
+            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.ZTID+ xfile.ZTYear + xfile.PZBeginDate + xfile.PZEndDate);
+            StringBuilder sb = new StringBuilder();
+            Array.ForEach(asciiBytes, (c) =>
+            {
+                if ((c > 47 && c < 58)
+                || (c > 64 && c < 91)
+                || (c > 96 && c < 123))
+                { sb.Append((char)c); }
+            });
+            string dbName = sb.ToString();
+            if (dbName.Length > 50) dbName = dbName.Substring(0, 49);
+            return dbName;
+        }
     }
     public static class StaticData
     {

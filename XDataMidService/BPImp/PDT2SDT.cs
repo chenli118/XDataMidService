@@ -20,17 +20,14 @@ namespace XDataMidService.BPImp
     {
 
         private int _auditYear;
-        private string conStr, _tempFile;
+        private string conStr,localDbName, _tempFile;
         private DateTime _beginDate, _endDate;
         private xfile xfile;
         XDataResponse response;
         public Exception _xdException;
         public PDT2SDT(Models.xfile xf)
         {
-            xfile = xf;
-            _auditYear = int.Parse(xf.ZTYear.Trim());
-            _beginDate = DateTime.Parse(_auditYear + "/" + xf.PZBeginDate.Trim());
-            _endDate = DateTime.Parse(_auditYear + "/" + xf.PZEndDate.Trim());
+            xfile = xf;          
             _xdException = new Exception(xf.ZTName);
             response = new XDataResponse();
             response.ResultContext = xf.ZTName;
@@ -68,10 +65,21 @@ namespace XDataMidService.BPImp
         }
         public XDataResponse Start()
         {
-            xfile.ProjectID = xfile.ZTID; //账套ID作为中间临时库名和项目编号
-
-            response.HttpStatusCode = 500;
             bool stepRet = false;
+            response.HttpStatusCode = 500; 
+            try
+            {
+                _auditYear = int.Parse(xfile.ZTYear.Trim());
+                _beginDate = DateTime.Parse(_auditYear + "/" + xfile.PZBeginDate.Trim());
+                _endDate = DateTime.Parse(_auditYear + "/" + xfile.PZEndDate.Trim());
+            }
+            catch
+            {
+                response.ResultContext += " 账套期间时间格式异常！ ";
+                return response;
+            }
+            localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
+            xfile.ProjectID = localDbName;
             if (!File.Exists(_tempFile))
             {
                 response.ResultContext += "XData File No Found";
