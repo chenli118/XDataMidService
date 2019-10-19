@@ -455,6 +455,7 @@ select  v.accountcode,v.FDetailID,v.fllx,v.jfje,v.dfje,a.syjz
 from dbo.tbvoucher v  with(nolock)  
  inner join #accounting a  
  on v.accountcode=a.accountcode  
+ where date <=@pzEndDate
  
 --添加索引  
 --create index ix_apcode_voucher on #voucher (accountcode)  

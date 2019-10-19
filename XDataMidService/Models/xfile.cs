@@ -32,7 +32,11 @@ namespace XDataMidService.Models
         public int FileSize { get; set; }
         public string UploadUser { get; set; }
         public DateTime UploadTime { get; set; }
-
+        /// <summary>
+        /// -1 前期 1 后期 
+        /// </summary>
+        public int periodType { get; set; }
+        public DateTime periodEndDate { get; set; }
         public string WP_GUID { get; set; }
         public string ProjectID { get; set; }
         public string DbName { get; set; }

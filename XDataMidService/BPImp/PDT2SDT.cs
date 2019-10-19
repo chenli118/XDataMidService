@@ -137,31 +137,17 @@ namespace XDataMidService.BPImp
                 response.ResultContext = "ERROR：TBDetail数据加载失败";
                 return response;
             }
-            stepRet = UpdateTBDetailAndTBAux();
-            if (!stepRet)
-            {
-                response.ResultContext = "ERROR：更新Tbdetail、TBAux失败";
-                return response;
-            }
+            //stepRet = UpdateTBDetailAndTBAux();
+            //if (!stepRet)
+            //{
+            //    response.ResultContext = "ERROR：更新Tbdetail、TBAux失败";
+            //    return response;
+            //}
             response.HttpStatusCode = 200;
             response.ResultContext = "SUCCESS : 导入数据成功";
             return response;
         }
-        private bool UpdateTBDetailAndTBAux()
-        {
-            try
-            {
-                var p = new DynamicParameters();
-                p.Add("@pzEndDate", _endDate);
-                SqlMapperUtil.InsertUpdateOrDeleteStoredProc("UpdateTBDetailTBAuxJE", p, conStr);
-            }
-            catch (Exception err)
-            {
-                _xdException = err;
-                return false;
-            }
-            return true;
-        }
+     
         private bool InitTbDetail()
         {
             try
@@ -431,14 +417,15 @@ namespace XDataMidService.BPImp
                     SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
                     pzkname = d.Pzk_TableName;
                 }
+                string updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.* FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";
+                SqlMapperUtil.CMDExcute(updatesql, null, conStr);
                 string incNoSql = ";with t1 as( select ROW_NUMBER() OVER (ORDER BY period) AS RowNumber,	period,pzh from TBVoucher group by period,pzh	having  COUNT(period)>1 AND count(pzh)>1)" +
                    "   update vv set vv.IncNo = v.RowNumber  from TBVoucher vv  ,	t1 v    where vv.period = v.period and vv.pzh = v.pzh; ";
                 SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
 
-                string updatesql = " update v set v.fllx = case when a.Syjz = 0 then 1 else a.Syjz end   from dbo.tbvoucher v     join ACCOUNT a on a.AccountCode = v.AccountCode  ";
+                updatesql = " update v set v.fllx = case when a.Syjz = 0 then 1 else a.Syjz end   from dbo.tbvoucher v     join ACCOUNT a on a.AccountCode = v.AccountCode  ";
                 SqlMapperUtil.CMDExcute(updatesql, null, conStr);
-                updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.* FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";
-                SqlMapperUtil.CMDExcute(updatesql, null, conStr);
+                
             }
             catch (Exception err)
             {

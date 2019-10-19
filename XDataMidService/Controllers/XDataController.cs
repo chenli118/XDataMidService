@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -73,6 +74,7 @@ namespace XDataMidService.Controllers
         {
             ActionContext _context = this.ControllerContext;
             XDataResponse response = new XDataResponse();
+            string constr = StaticUtil.GetConfigValueByKey("XDataConn");
             string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
             if (!StaticData.X2EasList.ContainsKey(key))
             {
@@ -86,63 +88,68 @@ namespace XDataMidService.Controllers
             StaticData.X2EasList[key] = 1;
             var dapper = DapperHelper<xfile>.Create("XDataConn");
             string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
-            dapper.conStr = StaticUtil.GetConfigValueByKey("XDataConn").Replace("master", localDbName);         
-            string projectID = xfile.ProjectID;
-            string logName = string.Empty;
-            string pwd = string.Empty;
-            string ip = string.Empty;
-            string dbName = string.Empty;
-            string scon = xfile.DbName; 
-            string[] sValue = scon.Split(';');
-            foreach (var s in sValue)
+            string qdb = "select 1 from sys.databases where name ='"+ localDbName + "'";
+            var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null,constr);
+            if (thisdb != 1)
             {
-                if (s.StartsWith("Server="))
-                {
-                    ip = s.Replace("Server=", "");
-                }
-                if (s.StartsWith("Database="))
-                {
-                    dbName = s.Replace("Database=", "");
-                }
-                if (s.StartsWith("User ID="))
-                {
-                    logName = s.Replace("User ID=", "");
-                }
-                if (s.StartsWith("Password="))
-                {
-                    pwd = s.Replace("Password=", "");
-                }
+                response.ResultContext = key + " 数据没有准备！ ";
+                StaticData.X2EasList[key] = 0;
+                return BadRequest(response).ExecuteResultAsync(_context);
             }
-            string linkSvrName=  SqlServerHelper.GetLinkServer(StaticUtil.GetConfigValueByKey("XDataConn"), ip, logName, pwd, ip);
-            if (!string.IsNullOrEmpty(linkSvrName))
+            dapper.conStr = constr.Replace("master", localDbName);         
+            string projectID = xfile.ProjectID;
+            var tbv = GetLinkSrvName(xfile.DbName, constr);
+            string linkSvrName =tbv.Item1;
+            string dbName = tbv.Item2;
+            bool updateJDJE = UpdateTBDetailAndTBAux(constr, xfile.periodEndDate);
+            if (!string.IsNullOrEmpty(linkSvrName) && updateJDJE)
             {
                 linkSvrName = "[" + linkSvrName + "]";
                 StringBuilder sb = new StringBuilder();
                 sb.Append(" SET XACT_ABORT ON   go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.[kjqj] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.kjqj ([ProjectID],[KJDate]) select '{0}' as ProjectID,[KJDate] from {3}.dbo.[kjqj] ", projectID, linkSvrName, dbName,localDbName);
-                sb.Append(" go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProjectType] where projectid ='{0}' ", projectID,linkSvrName,dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProjectType](ProjectID,TYPECODE,TYPENAME) select '{0}' as ProjectID,TYPECODE,TYPENAME from {3}.dbo.[ProjectType] ", projectID, linkSvrName,dbName,localDbName);
-                sb.Append(" go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProJect] where projectid ='{0}' ", projectID, linkSvrName,dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProJect](ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX) select '{0}' as ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX from {3}.dbo.[ProJect] ", projectID, linkSvrName,dbName,localDbName);
-                sb.Append(" go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.ACCOUNT where projectid ='{0}' ", projectID, linkSvrName,dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[ACCOUNT](ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz) select '{0}' as ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz from {3}.dbo.ACCOUNT ", projectID, linkSvrName,dbName,localDbName);
-                sb.Append(" go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' ", projectID, linkSvrName,dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](VoucherID,ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID) select  NEWID() as VoucherID, '{0}' as ProjectID,Clientid,IncNo,Date,left(CONVERT(varchar(12) ,Date, 112),6) as Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID from  {3}.dbo.TBVoucher ", projectID, linkSvrName,dbName,localDbName);
-                sb.Append(" go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName,dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear {3}.dbo.from AuxiliaryFDetail ", projectID, linkSvrName,dbName,localDbName);
-                sb.Append(" go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBAux] where projectid ='{0}' ", projectID,linkSvrName,dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBAux](ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye) select '{0}' as ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye from {3}.dbo.[TBAux] ", projectID,linkSvrName,dbName,localDbName);
-                sb.Append(" go ");
-                sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBDetail] (ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2]) select  '{0}' as ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2] from {3}.dbo.[TBDetail] ", projectID, linkSvrName, dbName,localDbName);
-                               
+                if (xfile.periodType == 0)
+                {
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[kjqj] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.kjqj ([ProjectID],[KJDate]) select '{0}' as ProjectID,[KJDate] from {3}.dbo.[kjqj] ", projectID, linkSvrName, dbName, localDbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProjectType] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProjectType](ProjectID,TYPECODE,TYPENAME) select '{0}' as ProjectID,TYPECODE,TYPENAME from {3}.dbo.[ProjectType] ", projectID, linkSvrName, dbName, localDbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProJect] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProJect](ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX) select '{0}' as ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX from {3}.dbo.[ProJect] ", projectID, linkSvrName, dbName, localDbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.ACCOUNT where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[ACCOUNT](ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz) select '{0}' as ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz from {3}.dbo.ACCOUNT ", projectID, linkSvrName, dbName, localDbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID) select  '{0}' as ProjectID,Clientid,IncNo,Date,left(CONVERT(varchar(12) ,Date, 112),6) as Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID " +
+                        " from  {3}.dbo.TBVoucher where data<='"+ xfile.periodEndDate +"'", projectID, linkSvrName, dbName, localDbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear {3}.dbo.from AuxiliaryFDetail ", projectID, linkSvrName, dbName, localDbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBAux] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBAux](ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye) select '{0}' as ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye from {3}.dbo.[TBAux] ", projectID, linkSvrName, dbName, localDbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBDetail] (ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2]) select  '{0}' as ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2] from {3}.dbo.[TBDetail] ", projectID, linkSvrName, dbName, localDbName);
+                }
+
+                else if (xfile.periodType == 1)
+                {
+                    sb.AppendFormat(" insert into {1}.{2}.dbo.qhjzpz (Clientid,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
+                        " select Clientid,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
+                        " from TBVoucher a where a.hashcode not in ( select hashcode from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}' ) ",projectID,linkSvrName,dbName);
+                    sb.Append(" go ");
+                }
+                else if (xfile.periodType == -1) 
+                {
+                    sb.AppendFormat(" insert into {1}.{2}.dbo.Qcwljzpz (Clientid,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
+                         " select Clientid,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
+                         " from TBVoucher a where a.hashcode not in ( select hashcode from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}' ) ", projectID, linkSvrName, dbName);
+                    sb.Append(" go ");
+                }
+                
                 string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);                
                 int ret = dapper.ExecuteTransaction(sqlarr);
                 if (ret > 0)
@@ -165,6 +172,49 @@ namespace XDataMidService.Controllers
 
         }
 
-       
+        private Tuple<string, string> GetLinkSrvName(string connectInfo,string localCon)
+        {
+            string logName = string.Empty;
+            string pwd = string.Empty;
+            string ip = string.Empty;
+            string dbName = string.Empty; 
+            string[] sValue = connectInfo.Split(';');
+            foreach (var s in sValue)
+            {
+                if (s.StartsWith("Server="))
+                {
+                    ip = s.Replace("Server=", "");
+                }
+                if (s.StartsWith("Database="))
+                {
+                    dbName = s.Replace("Database=", "");
+                }
+                if (s.StartsWith("User ID="))
+                {
+                    logName = s.Replace("User ID=", "");
+                }
+                if (s.StartsWith("Password="))
+                {
+                    pwd = s.Replace("Password=", "");
+                }
+            }
+            string linkSvrName = SqlServerHelper.GetLinkServer(localCon, ip, logName, pwd, ip);
+            return  new Tuple<string,string>(linkSvrName,dbName);
+        }
+        private bool UpdateTBDetailAndTBAux(string conStr ,DateTime pzEndDate)
+        {
+            try
+            {
+                var p = new DynamicParameters();
+                p.Add("@pzEndDate", pzEndDate);
+                SqlMapperUtil.InsertUpdateOrDeleteStoredProc("UpdateTBDetailTBAuxJE", p, conStr);
+            }
+            catch (Exception err)
+            {
+                _logger.LogError(err.Message);
+                return false;
+            }
+            return true;
+        }
     }
 }
