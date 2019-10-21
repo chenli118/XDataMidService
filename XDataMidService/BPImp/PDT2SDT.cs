@@ -295,6 +295,7 @@ namespace XDataMidService.BPImp
             {
                 DataTable auxTable = new DataTable();
                 auxTable.TableName = "TBAux";
+                auxTable.Columns.Add("XID",typeof(Int32));
                 auxTable.Columns.Add("ProjectID");
                 auxTable.Columns.Add("AccountCode");
                 auxTable.Columns.Add("AuxiliaryCode");
@@ -313,6 +314,7 @@ namespace XDataMidService.BPImp
                 foreach (var vd in ds)
                 {
                     DataRow dr = auxTable.NewRow();
+                    dr["XID"] = 0;
                     dr["ProjectID"] = xfile.ProjectID;
                     dr["AccountCode"] = vd.accountcode;
                     dr["AuxiliaryCode"] = vd.AuxiliaryCode;
@@ -354,6 +356,7 @@ namespace XDataMidService.BPImp
             {
                 DataTable auxfdetail = new DataTable();
                 auxfdetail.TableName = "AuxiliaryFDetail";
+                auxfdetail.Columns.Add("XID",typeof(Int32));
                 auxfdetail.Columns.Add("projectid");
                 auxfdetail.Columns.Add("Accountcode");
                 auxfdetail.Columns.Add("AuxiliaryCode");
@@ -385,6 +388,7 @@ namespace XDataMidService.BPImp
                                 if (!string.IsNullOrWhiteSpace(xv.Value))
                                 {
                                     DataRow dr1 = auxfdetail.NewRow();
+                                    dr1["XID"] =0;
                                     dr1["projectid"] = xfile.ProjectID;
                                     string dm = d.Kmdm;
                                     dr1["Accountcode"] = dm.Trim();
@@ -417,9 +421,14 @@ namespace XDataMidService.BPImp
         }
         private bool GetIsExsitsItemClass()
         {
-            string sql = "select 1 as be from t_itemclass";
+            string sql = "select 1  from sysobjects  where id = object_id('xmye')    and type = 'U'";
             object ret = DapperHelper<int>.Create("XDataConn", conStr).ExecuteScalar(sql, null);
-            return ret != null;
+            if (ret != null && Convert.ToInt32(ret) == 1)
+            {
+                sql = "select 1  from sysobjects  where id = object_id('t_itemclass')    and type = 'U'";
+                ret = DapperHelper<int>.Create("XDataConn", conStr).ExecuteScalar(sql, null);               
+            }
+            return ret != null && Convert.ToInt32(ret) == 1;
         }
         private bool InitVoucher()
         {
@@ -446,7 +455,7 @@ namespace XDataMidService.BPImp
                     SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
                     pzkname = d.Pzk_TableName;
                 }
-                string updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.* FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";
+                string updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.ProjectID,z.Date,z.Pzh,z.Djh,z.AccountCode,z.Zy,z.Jfje,z.Dfje,z.jfsl,z.fsje,z.jd,z.dfsl,z.ZDR,z.dfkm,z.Wbdm,z.Wbje,z.Hl,z.FDetailID FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";
                 SqlMapperUtil.CMDExcute(updatesql, null, conStr);
 
                 string incNoSql = " ;with t1 as( select ROW_NUMBER() OVER (ORDER BY pzh) AS IncNO,CONVERT(varchar,date,102) as period,pzh from TBVoucher group by CONVERT(varchar,date,102) ,pzh)  " +
@@ -477,6 +486,7 @@ namespace XDataMidService.BPImp
                 //}
                 DataTable accountTable = new DataTable();
                 accountTable.TableName = "ACCOUNT";
+                accountTable.Columns.Add("XID", typeof(Int32));
                 accountTable.Columns.Add("ProjectID");
                 accountTable.Columns.Add("AccountCode");
                 accountTable.Columns.Add("UpperCode");
@@ -500,6 +510,7 @@ namespace XDataMidService.BPImp
                 foreach (var vd in ds)
                 {
                     DataRow dr = accountTable.NewRow();
+                    dr["XID"] =0;
                     dr["ProjectID"] = xfile.ProjectID;
                     string dm = vd.kmdm;
                     dr["AccountCode"] = dm.Trim(); //dm.TrimEnd('.');

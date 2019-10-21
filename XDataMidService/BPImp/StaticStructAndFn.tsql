@@ -6,6 +6,7 @@ if exists (select 1
    drop table AuxiliaryFDetail
 
 create table AuxiliaryFDetail (
+   [XID] [int] IDENTITY(1,1) NOT NULL,
    projectid            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    Accountcode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    AuxiliaryCode        varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
@@ -25,6 +26,7 @@ if exists (select 1
    drop table TBAux
 
 create table TBAux (
+[XID] [int] IDENTITY(1,1) NOT NULL,
    ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    AccountCode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    AuxiliaryCode        varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
@@ -49,6 +51,7 @@ if exists (select 1
    drop table ACCOUNT
 go
 create table ACCOUNT (
+[XID] [int] IDENTITY(1,1) NOT NULL,
    ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    AccountCode          varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
    UpperCode            varchar(255)         collate Chinese_PRC_CS_AS_KS_WS null,
@@ -76,6 +79,7 @@ if exists (select 1
    drop table TBVoucher
 go
 create table dbo.TBVoucher (
+   [XID] [int] IDENTITY(1,1) NOT NULL,
    HashCode				binary(20) null,
    VoucherID            varchar(50)          collate Chinese_PRC_CS_AS_KS_WS not null default newid(),
    Clientid             varchar(100)         not null,
@@ -124,6 +128,7 @@ if exists (select 1
    drop table ProJect
 go
 create table ProJect (
+[XID] [int] IDENTITY(1,1) NOT NULL,
    ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    TYPECODE             varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
    PROJECTCODE          varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
@@ -143,6 +148,7 @@ if exists (select 1
    drop table ProjectType
 go
 create table ProjectType (
+[XID] [int] IDENTITY(1,1) NOT NULL,
    ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    TYPECODE             varchar(255)         collate Chinese_PRC_CS_AS_KS_WS not null,
    TYPENAME             varchar(1000)        not null,
@@ -220,6 +226,7 @@ if exists (select 1
    drop table TBDetail
 go
 create table TBDetail (
+[XID] [int] IDENTITY(1,1) NOT NULL,
    ID                   varchar(50)          not null,
    ProjectID            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    FSCode               varchar(50)          collate Chinese_PRC_CS_AS_KS_WS not null,
@@ -272,64 +279,6 @@ AS
 BEGIN
 	return	case when len(isnull(@param1,''))=0 then @param2	else @param1	end;
 END
-
-GO
-
-IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[IndexSplterNumber]') AND xtype IN ( N'FN', N'IF', N'TF' ) ) 
-   BEGIN
-       DROP FUNCTION [dbo].[IndexSplterNumber]
-   END
-GO
-
-CREATE FUNCTION IndexSplterNumber
-(
-	@SourceSql varchar(8000),@StrSeprate varchar(10)
-)
-RETURNS int
-AS
-begin
-declare @i int,@ii int=0
-
-if(@SourceSql is not null)
-	set	@ii+=1
-
-set @SourceSql=rtrim(ltrim(@SourceSql))
-set @i=charindex(@StrSeprate,@SourceSql)
-
-while @i>=1
-begin
-	set @SourceSql=substring(@SourceSql,@i+1,len(@SourceSql)-@i)
-	set @i=charindex(@StrSeprate,@SourceSql)
-	set	@ii+=1	
-end
-	return	@ii--case when @ii>0 then @ii+1 else @ii end
-end
-
-GO
-
-IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[fn_SplitTSQL]') AND xtype IN ( N'FN', N'IF', N'TF' ) ) 
-   BEGIN
-       DROP FUNCTION [dbo].[fn_SplitTSQL]
-   END
-GO
- 
-CREATE FUNCTION dbo.fn_SplitTSQL(@SourceSql varchar(8000),@StrSeprate varchar(10))
-	returns @temp table(code varchar(100)	COLLATE Chinese_PRC_CS_AS_KS_WS	NULL)
-as 
-begin
-declare @i int
-set @SourceSql=rtrim(ltrim(@SourceSql))
-set @i=charindex(@StrSeprate,@SourceSql)
-while @i>=1
-begin
-insert @temp values(left(@SourceSql,@i-1))
-set @SourceSql=substring(@SourceSql,@i+1,len(@SourceSql)-@i)
-set @i=charindex(@StrSeprate,@SourceSql)
-end
-if @SourceSql<>''
-insert @temp values(@SourceSql)
-return 
-end
 
 
 GO

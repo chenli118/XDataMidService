@@ -148,15 +148,15 @@ namespace XDataMidService.Controllers
 
                 else if (xfile.periodType == 1)
                 {
-                    sb.AppendFormat(" insert into {1}.{2}.dbo.qhjzpz ('"+xfile.ClientID+ "' as ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
-                        " select Clientid,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
+                    sb.AppendFormat(" insert into {1}.{2}.dbo.qhjzpz (ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
+                        " select '" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
                         " from TBVoucher a where a.hashcode not in ( select hashcode from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}' ) ",projectID,linkSvrName,dbName);
                     sb.Append(" go ");
                 }
                 else if (xfile.periodType == -1) 
                 {
-                    sb.AppendFormat(" insert into {1}.{2}.dbo.Qcwljzpz ('" + xfile.ClientID + "' as ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
-                         " select Clientid,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
+                    sb.AppendFormat(" insert into {1}.{2}.dbo.Qcwljzpz (ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
+                         " select '" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
                          " from TBVoucher a where a.hashcode not in ( select hashcode from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}' ) ", projectID, linkSvrName, dbName);
                     sb.Append(" go ");
                 }
