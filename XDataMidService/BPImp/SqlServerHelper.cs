@@ -98,6 +98,35 @@ namespace XDataMidService.BPImp
             return -1;
         }
 
+        public static DataTable GetTableBySql(string sql, string conStr)
+        {
+            DataTable dt = new DataTable();
+            using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(conStr))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    System.Data.SqlClient.SqlCommand sqlCommand = new System.Data.SqlClient.SqlCommand(sql, conn);
+                    sqlCommand.CommandText = sql;
+                    IDataReader dataReader = sqlCommand.ExecuteReader();
+                    dt.Load(dataReader);
+                    dataReader.Close();
+                    return dt;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+                finally
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+
+            }
+            return dt;
+        }
+
         public static int ExecuteSql(string sql, string conStr)
         {
             using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(conStr))

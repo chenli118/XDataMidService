@@ -39,6 +39,7 @@ namespace XDataMidService.Models
         public DateTime periodEndDate { get; set; }
         public string WP_GUID { get; set; }
         public string ProjectID { get; set; }
+        public string ClientID { get; set; }
         public string DbName { get; set; }
     }
 }

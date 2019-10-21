@@ -147,6 +147,35 @@ namespace XDataMidService.BPImp
             response.ResultContext = "SUCCESS : 导入数据成功";
             return response;
         }
+
+        private bool UpdateTBDetailTBAuxMny()
+        { 
+            var a1sql = " ;with a1 as (  select  accountcode from account with(nolock)   where accountname = '以前年度损益调整'  UNION ALL select a.projectid,a.accountcode from account a with(nolock)" +
+                "inner join a1 on  a.uppercode = a1.accountcode and a.accountcode != a.accountcode  )  SELECT * FROM a1   ";
+            DataTable a1 = SqlServerHelper.GetTableBySql(a1sql, conStr);
+            var accountsql = "select * from dbo.Account with(nolock) ";
+            DataTable account = SqlServerHelper.GetTableBySql(accountsql, conStr);
+            var vouchersql = "select v.accountcode,v.FDetailID,v.fllx,v.jfje,v.dfje,a.syjz from dbo.tbvoucher v  with(nolock)  inner join Account  a   on v.accountcode = a.accountcode   where date <=@pzEndDate ";
+            DataTable voucher = SqlServerHelper.GetTableBySql(vouchersql,conStr);
+
+            string[] astr = new string[a1.Rows.Count];
+            Array.ForEach(a1.Rows.Cast<DataRow>().ToArray(), (dr) =>
+             astr.Append(dr.ItemArray[0])
+            );
+
+            var result = from r in voucher.AsEnumerable()
+                         group r by new { AccountCode = r["AccountCode"] }
+              into g
+                         select new
+                         { 
+                             jfje = g.Sum(x => Convert.ToDecimal(x["jfje"])),
+                             dfje = g.Sum(x => Convert.ToDecimal(x["dfje"])),
+                         };
+              
+             
+
+            return false;
+        }
      
         private bool InitTbDetail()
         {
@@ -399,7 +428,7 @@ namespace XDataMidService.BPImp
             {
                 string jzpzSQL = " truncate table TBVoucher" +
                     " insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx,FDetailID) ";
-                jzpzSQL += "select  newid() as VoucherID,'" + xfile.CustomName + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj  as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
+                jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj  as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
                    " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
                    " case when jd = '贷' then rmb else 0 end as dfje,  " +
                    " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
@@ -419,13 +448,15 @@ namespace XDataMidService.BPImp
                 }
                 string updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.* FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";
                 SqlMapperUtil.CMDExcute(updatesql, null, conStr);
-                string incNoSql = ";with t1 as( select ROW_NUMBER() OVER (ORDER BY period) AS RowNumber,	period,pzh from TBVoucher group by period,pzh	having  COUNT(period)>1 AND count(pzh)>1)" +
-                   "   update vv set vv.IncNo = v.RowNumber  from TBVoucher vv  ,	t1 v    where vv.period = v.period and vv.pzh = v.pzh; ";
+
+                string incNoSql = " ;with t1 as( select ROW_NUMBER() OVER (ORDER BY pzh) AS IncNO,CONVERT(varchar,date,102) as period,pzh from TBVoucher group by CONVERT(varchar,date,102) ,pzh)  " +
+                   "  update vv set vv.IncNo = t1.IncNO  from TBVoucher vv join t1  on CONVERT(varchar, vv.date, 102) = t1.period and vv.pzh = t1.pzh" ;
                 SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
 
-                updatesql = " update v set v.fllx = case when a.Syjz = 0 then 1 else a.Syjz end   from dbo.tbvoucher v     join ACCOUNT a on a.AccountCode = v.AccountCode  ";
-                SqlMapperUtil.CMDExcute(updatesql, null, conStr);
-                
+                //incNoSql = " ;with t1 as( select ROW_NUMBER() OVER (ORDER BY pzh) AS IncNO,CONVERT(varchar,date,102) as period,pzh from TBVoucher group by CONVERT(varchar,date,102) ,pzh)  " +
+                //"  update v set v.fllx = 2  from TBVoucher v join t1  on CONVERT(varchar, v.date, 102) = t1.period and v.pzh = t1.pzh  join account a on a.accountcode =v.accountcode and a.syjz between 1 and 2 ";
+                //SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
+
             }
             catch (Exception err)
             {
@@ -762,17 +793,17 @@ namespace XDataMidService.BPImp
             var tmpFolder = zzero1F.Remove(zzero1F.LastIndexOf('.'));
             if (Directory.Exists(tmpFolder))
             {
-                tmpFolder = tmpFolder + DateTime.Now.Ticks;
-                Directory.CreateDirectory(tmpFolder);
-                //string[] fs = Directory.GetFiles(tmpFolder);
-                //if (fs.Length > 0)
-                //{
-                //    foreach (var f in fs)
-                //    {
-                //        File.SetAttributes(f, FileAttributes.Normal);
-                //        File.Delete(f);
-                //    }
-                //}
+                //tmpFolder = tmpFolder + DateTime.Now.Ticks;
+                //Directory.CreateDirectory(tmpFolder);
+                string[] fs = Directory.GetFiles(tmpFolder);
+                if (fs.Length > 0)
+                {
+                    foreach (var f in fs)
+                    {
+                        File.SetAttributes(f, FileAttributes.Normal);
+                        File.Delete(f);
+                    }
+                }
             }
             else
             {
