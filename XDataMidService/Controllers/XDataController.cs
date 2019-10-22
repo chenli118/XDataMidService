@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -133,7 +134,7 @@ namespace XDataMidService.Controllers
                     sb.AppendFormat(" insert into  {1}.{2}.dbo.[ACCOUNT](ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz) select '{0}' as ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz from {3}.dbo.ACCOUNT ", projectID, linkSvrName, dbName, localDbName);
                     sb.Append(" go ");
                     sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID) select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date,left(CONVERT(varchar(12) ,Date, 112),6) as Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID " +
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date,left(CONVERT(varchar(12) ,Date, 112),6) as Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
                         " from  {3}.dbo.TBVoucher where Date<='" + xfile.periodEndDate +"'", projectID, linkSvrName, dbName, localDbName);
                     sb.Append(" go ");
                     sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
@@ -159,8 +160,7 @@ namespace XDataMidService.Controllers
                          " select '" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
                          " from TBVoucher a where a.hashcode not in ( select hashcode from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}' ) ", projectID, linkSvrName, dbName);
                     sb.Append(" go ");
-                }
-                sb.AppendFormat(" exec  {1}.{2}.dbo.[UPDATEVoucherFllx] '{0}','{3}'  go ", projectID, linkSvrName, dbName, xfile.periodType);
+                }               
                 string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);                
                 int ret = dapper.ExecuteTransaction(sqlarr);
                 if (ret > 0)
@@ -182,35 +182,12 @@ namespace XDataMidService.Controllers
             return BadRequest(response).ExecuteResultAsync(_context); ;
 
         }
-
+        
         private Tuple<string, string> GetLinkSrvName(string connectInfo,string localCon)
-        {
-            string logName = string.Empty;
-            string pwd = string.Empty;
-            string ip = string.Empty;
-            string dbName = string.Empty; 
-            string[] sValue = connectInfo.Split(';');
-            foreach (var s in sValue)
-            {
-                if (s.StartsWith("Server="))
-                {
-                    ip = s.Replace("Server=", "");
-                }
-                if (s.StartsWith("Database="))
-                {
-                    dbName = s.Replace("Database=", "");
-                }
-                if (s.StartsWith("User ID="))
-                {
-                    logName = s.Replace("User ID=", "");
-                }
-                if (s.StartsWith("Password="))
-                {
-                    pwd = s.Replace("Password=", "");
-                }
-            }
-            string linkSvrName = SqlServerHelper.GetLinkServer(localCon, ip, logName, pwd, ip);
-            return  new Tuple<string,string>(linkSvrName,dbName);
+        { 
+            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(connectInfo); 
+            string linkSvrName = SqlServerHelper.GetLinkServer(localCon, csb.DataSource, csb.UserID, csb.Password, csb.DataSource);
+            return  new Tuple<string,string>(linkSvrName, csb.InitialCatalog);
         }
         private bool UpdateTBDetailAndTBAux(string conStr ,DateTime pzEndDate)
         {

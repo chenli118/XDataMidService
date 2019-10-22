@@ -462,9 +462,10 @@ namespace XDataMidService.BPImp
                    "  update vv set vv.IncNo = t1.IncNO  from TBVoucher vv join t1  on CONVERT(varchar, vv.date, 102) = t1.period and vv.pzh = t1.pzh" ;
                 SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
 
-                //incNoSql = " ;with t1 as( select ROW_NUMBER() OVER (ORDER BY pzh) AS IncNO,CONVERT(varchar,date,102) as period,pzh from TBVoucher group by CONVERT(varchar,date,102) ,pzh)  " +
-                //"  update v set v.fllx = 2  from TBVoucher v join t1  on CONVERT(varchar, v.date, 102) = t1.period and v.pzh = t1.pzh  join account a on a.accountcode =v.accountcode and a.syjz between 1 and 2 ";
-                //SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
+                incNoSql = " with a1 as( select distinct t.incno,a.syjz from dbo.tbvoucher t	with(nolock)	join dbo.Account a	with(nolock)	on t.AccountCode=a.AccountCode	),a2 as (select incno,max(syjz) maxsyjz,min(syjz) minSyjz" +
+                    " from a1  group by incno)	select ROW_NUMBER() OVER(ORDER BY NEWID()) AS ID, * into #a2 from a2 ;	update v set v.fllx=case when a.maxsyjz=3 then 3 when a.maxsyjz=2 and a.minSyjz=1 then 2 else	1	end" +
+                    " from dbo.tbvoucher v inner join #a2 a on v.incno=a.incno ;drop table #a2  ";
+                SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
 
             }
             catch (Exception err)
