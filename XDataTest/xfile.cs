@@ -25,7 +25,7 @@ namespace XDataTest
         public int fileSize { get; set; }
         public string uploadUser { get; set; }
         public DateTime uploadTime { get; set; }
-
+        public int DataStatus { get; set; }
         public string wp_GUID { get; set; }
         public string projectID { get; set; }
         public string dbName { get; set; }

@@ -48,7 +48,7 @@ namespace XDataTest
        
         private void button1_Click(object sender, EventArgs e)
         {
-            string url = rootUrl+"xfile";             
+            string url = rootUrl+ "xfile/GetXfilesByIDS/1,8,9,2,3,4";             
             HttpGet(url,Xfile); 
         }
         public string HttpGet(string url,xfile xfile)

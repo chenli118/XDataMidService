@@ -111,16 +111,7 @@ namespace XDataMidService.Controllers
                 sb.Append(" SET XACT_ABORT ON   go ");
                
                 if (xfile.periodType == 0)
-                {
-                    bool updateJDJE = UpdateTBDetailAndTBAux(dapper.conStr, xfile.periodEndDate);
-                    if (!updateJDJE)
-                    {
-                        StaticData.X2EasList[key] = 0;
-                        response.HttpStatusCode = 500;
-                        response.ResultContext = string.Format("{0} Error : UpdateTBDetailAndTBAux", xfile.ProjectID, xfile.CustomID);
-                        _logger.LogError(response.ResultContext);
-                        return BadRequest(response).ExecuteResultAsync(_context); ;
-                    }
+                {                    
                     sb.AppendFormat(" delete from  {1}.{2}.dbo.[kjqj] where projectid ='{0}' ", projectID, linkSvrName, dbName);
                     sb.AppendFormat(" insert into  {1}.{2}.dbo.kjqj ([ProjectID],[KJDate]) select '{0}' as ProjectID,[KJDate] from {3}.dbo.[kjqj] ", projectID, linkSvrName, dbName, localDbName);
                     sb.Append(" go ");
@@ -149,16 +140,20 @@ namespace XDataMidService.Controllers
 
                 else if (xfile.periodType == 1)
                 {
+                    sb.AppendFormat(" select hashcode into #h1 from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}'", projectID, linkSvrName, dbName);
+                    sb.Append(" go ");
                     sb.AppendFormat(" insert into {1}.{2}.dbo.qhjzpz (ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
                         " select '" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
-                        " from TBVoucher a where a.hashcode not in ( select hashcode from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}' ) ",projectID,linkSvrName,dbName);
+                        " from TBVoucher a where a.hashcode not in ( select hashcode from #h1) ",projectID,linkSvrName,dbName);
                     sb.Append(" go ");
                 }
                 else if (xfile.periodType == -1) 
                 {
+                    sb.AppendFormat(" select hashcode into #h2 from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}'", projectID, linkSvrName, dbName);
+                    sb.Append(" go ");
                     sb.AppendFormat(" insert into {1}.{2}.dbo.Qcwljzpz (ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
                          " select '" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
-                         " from TBVoucher a where a.hashcode not in ( select hashcode from {1}.{2}.dbo.tbvoucher t where t.projectid ='{0}' ) ", projectID, linkSvrName, dbName);
+                         " from TBVoucher a where a.hashcode not in ( select hashcode from  #h2 ) ", projectID, linkSvrName, dbName);
                     sb.Append(" go ");
                 }               
                 string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);                
@@ -184,7 +179,8 @@ namespace XDataMidService.Controllers
         }
         
         private Tuple<string, string> GetLinkSrvName(string connectInfo,string localCon)
-        { 
+        {
+            connectInfo = connectInfo.Replace("Asynchronous Processing=true", "");
             SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(connectInfo); 
             string linkSvrName = SqlServerHelper.GetLinkServer(localCon, csb.DataSource, csb.UserID, csb.Password, csb.DataSource);
             return  new Tuple<string,string>(linkSvrName, csb.InitialCatalog);

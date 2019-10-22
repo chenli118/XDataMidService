@@ -137,15 +137,23 @@ namespace XDataMidService.BPImp
                 response.ResultContext = "ERROR：TBDetail数据加载失败";
                 return response;
             }
-            //stepRet = UpdateTBDetailAndTBAux();
-            //if (!stepRet)
-            //{
-            //    response.ResultContext = "ERROR：更新Tbdetail、TBAux失败";
-            //    return response;
-            //}
+            stepRet = UpdateTBDetailAndTBAux();
+            if (!stepRet)
+            {
+                response.ResultContext = "ERROR：更新Tbdetail、TBAux失败";
+                return response;
+            }
             response.HttpStatusCode = 200;
             response.ResultContext = "SUCCESS : 导入数据成功";
             return response;
+        }
+
+        private bool UpdateTBDetailAndTBAux()
+        {
+            string sql =  " select ROW_NUMBER() OVER(ORDER BY accountcode) AS ID, accountcode, fscode, kmsx, yefx  into #auxfscode	from	dbo.TbDetail with(nolock) where	auxiliarycode='' and	datatype=0 and	isaux=0	 " +
+                " MERGE DBO.TBAux AS AUX USING 	#auxfscode AS d ON AUX.ACCOUNTCODE COLLATE Chinese_PRC_CS_AS_KS_WS = d.ACCOUNTCODE  COLLATE Chinese_PRC_CS_AS_KS_WS" +
+                " WHEN MATCHED THEN UPDATE SET aux.fscode = d.fscode,aux.KMSX = d.kmsx,aux.yefx = d.yefx; drop table #auxfscode ";
+           return SqlMapperUtil.CMDExcute(sql, null, conStr)>0;
         }
 
         private bool UpdateTBDetailTBAuxMny()

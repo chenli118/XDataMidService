@@ -33,7 +33,14 @@ namespace XDataMidService.Controllers
           var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null, constr);
           return tab_ic;
         }
-
+        [Route("[action]/{xids}")]
+        public IEnumerable<Models.xfile> GetXfilesByIDS(string xids)
+        {
+            string itemclass = "select * from  XData.dbo.XFiles where xid in("+xids+")";
+            var constr = StaticUtil.GetConfigValueByKey("XDataConn");
+            var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null, constr);
+            return tab_ic;
+        }
         // GET api/<controller>/5
         [HttpGet("{id}")]
         public string Get(int id)
