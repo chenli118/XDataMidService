@@ -6,7 +6,7 @@ if exists (select 1
    drop table AuxiliaryFDetail
 
 create table AuxiliaryFDetail (
-   [XID] [int] IDENTITY(1,1) NOT NULL,
+   [XID] [int] IDENTITY(1,1) NOT NULL,   
    projectid            varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    Accountcode          varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
    AuxiliaryCode        varchar(100)         collate Chinese_PRC_CS_AS_KS_WS not null,
@@ -16,6 +16,7 @@ create table AuxiliaryFDetail (
    FDetailID            int                  not null,
    DataType             int                  not null,
    DataYear             int                  not null,
+   HashCode				binary(20) null,
    constraint PK_AUXILIARYFDETAIL primary key (projectid, Accountcode, AuxiliaryCode, FDetailID, DataYear)
 )
 

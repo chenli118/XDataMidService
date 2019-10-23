@@ -491,7 +491,7 @@ namespace XDataMidService
         /// <param name="sqlarr">多条SQL</param>
         /// <param name="param">param</param>
         /// <returns></returns>
-        public  int ExecuteTransaction(string[] sqlarr)
+        public  int ExecuteTransactionAndDBSigleUser(string[] sqlarr)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
@@ -507,7 +507,7 @@ namespace XDataMidService
                         }
 
                         transaction.Commit();
-                        return result;
+                        return 1;
                     }
                     catch (Exception ex)
                     {

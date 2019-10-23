@@ -13,6 +13,7 @@ using System.Net.Http;
 using System.Net;
 using Microsoft.Extensions.Configuration;
 using NetDiskLibrary;
+using System.Security.Cryptography;
 
 namespace XDataMidService.BPImp
 {
@@ -364,7 +365,7 @@ namespace XDataMidService.BPImp
             {
                 DataTable auxfdetail = new DataTable();
                 auxfdetail.TableName = "AuxiliaryFDetail";
-                auxfdetail.Columns.Add("XID",typeof(Int32));
+                auxfdetail.Columns.Add("XID", typeof(Int32));
                 auxfdetail.Columns.Add("projectid");
                 auxfdetail.Columns.Add("Accountcode");
                 auxfdetail.Columns.Add("AuxiliaryCode");
@@ -374,7 +375,7 @@ namespace XDataMidService.BPImp
                 auxfdetail.Columns.Add("FDetailID", typeof(int));
                 auxfdetail.Columns.Add("DataType", typeof(int));
                 auxfdetail.Columns.Add("DataYear", typeof(int));
-
+                auxfdetail.Columns.Add("HashCode", typeof(byte[]));
                 string itemclass = "select * from t_itemclass";
                 var tab_ic = SqlMapperUtil.SqlWithParams<dynamic>(itemclass, null, conStr);
                 List<string> xmField = new List<string>();
@@ -384,7 +385,9 @@ namespace XDataMidService.BPImp
                 }
                 string sql1 = "select  * from t_itemdetail  t join t_fzye f on t.FDetailID = f.FDetailID  ";
                 var d1 = SqlMapperUtil.SqlWithParams<dynamic>(sql1, null, conStr);
-                foreach (var d in d1)
+                using (SHA1Managed sha1 = new SHA1Managed())
+                {
+                    foreach (var d in d1)
                 {
                     Array.ForEach(xmField.ToArray(), f =>
                     {
@@ -396,7 +399,7 @@ namespace XDataMidService.BPImp
                                 if (!string.IsNullOrWhiteSpace(xv.Value))
                                 {
                                     DataRow dr1 = auxfdetail.NewRow();
-                                    dr1["XID"] =0;
+                                    dr1["XID"] = 0;
                                     dr1["projectid"] = xfile.ProjectID;
                                     string dm = d.Kmdm;
                                     dr1["Accountcode"] = dm.Trim();
@@ -408,6 +411,9 @@ namespace XDataMidService.BPImp
                                     dr1["FDetailID"] = d.FDetailID;
                                     dr1["DataType"] = 0;
                                     dr1["DataYear"] = _auditYear;
+                                    //var hvalue = string.Join("", dr1.ItemArray.ToArray() + "");
+                                    // dr1["HashCode"] = sha1.ComputeHash(Encoding.Unicode.GetBytes(hvalue)).Select(b => b.ToString("x2"));
+                                    dr1["HashCode"] = DBNull.Value;
                                     auxfdetail.Rows.Add(dr1);
                                 }
                             }
@@ -415,9 +421,12 @@ namespace XDataMidService.BPImp
 
                     });
                 }
+            }
                 string execSQL = " truncate table  " + auxfdetail.TableName;
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
                 SqlServerHelper.SqlBulkCopy(auxfdetail, conStr).Wait();
+                execSQL = " update z set z.HashCode = HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) from AuxiliaryFDetail z" ;
+                SqlMapperUtil.CMDExcute(execSQL, null, conStr);
             }
             catch (Exception err)
             {
@@ -443,17 +452,31 @@ namespace XDataMidService.BPImp
 
             try
             {
-                string jzpzSQL = " truncate table TBVoucher" +
-                    " insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx,FDetailID) ";
-                jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date],Kjqj  as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
-                   " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
-                   " case when jd = '贷' then rmb else 0 end as dfje,  " +
-                   " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
-                   " case when jd = '借' and rmb>0	then 1 else -1 end *(rmb) as fsje," +
-                   " case when jd = '借' and rmb>0	then 1 else -1 end	as jd, " +
-                   " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx, FDetailID from jzpz ";
+                string sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'kjqj'";
+                int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx,FDetailID) ";
+                if (pzqj == 1)
+                {                   
+                    jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date], DATENAME(year,pz_date)+DATENAME(month,pz_date)   as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
+                       " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
+                       " case when jd = '贷' then rmb else 0 end as dfje,  " +
+                       " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
+                       " case when jd = '借' and rmb>0	then 1 else -1 end *(rmb) as fsje," +
+                       " case when jd = '借' and rmb>0	then 1 else -1 end	as jd, " +
+                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx, FDetailID from jzpz ";                  
+                }
+                else
+                { 
+                    jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, CONVERT(date, '"+xfile.ZTYear+"'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))) as [date]," +
+                        "  '" + xfile.ZTYear + "'+   DATENAME(month, CONVERT(date, '" + xfile.ZTYear + "'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))))  as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
+                       " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
+                       " case when jd = '贷' then rmb else 0 end as dfje,  " +
+                       " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
+                       " case when jd = '借' and rmb>0	then 1 else -1 end *(rmb) as fsje," +
+                       " case when jd = '借' and rmb>0	then 1 else -1 end	as jd, " +
+                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx, FDetailID from jzpz ";
+                }
                 SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
-
                 string expzk = " select 	Pzk_TableName	from	pzk	where	Pzk_TableName!='jzpz' and Pzk_TableName like 'jzpz%' ";
                 dynamic ds = SqlMapperUtil.SqlWithParams<dynamic>(expzk, null, conStr);
                 string pzkname = "jzpz";

@@ -35,6 +35,6 @@ namespace XDataMidService
     public static class StaticData
     {
         public static Dictionary<string,int> X2SqlList { get; set; }
-        public static Dictionary<string, int> X2EasList { get; set; }
+        public static Dictionary<string, string> X2EasList { get; set; }
     }
 }
