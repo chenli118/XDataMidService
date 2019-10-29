@@ -161,8 +161,8 @@ namespace XDataMidService.BPImp
 
                 }
                 string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);
-                int ret = dapper.ExecuteTransactionAndDBSigleUser(sqlarr);
-                if (ret > 0)
+                var  ret = dapper.ExecuteTransactionAndDBSigleUser(sqlarr);
+                if (ret.Item1 > 0)
                 {
                     dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =1,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
                     response.HttpStatusCode = 200;
@@ -172,11 +172,15 @@ namespace XDataMidService.BPImp
                     return response;
 
                 }
+                else
+                {
+                    response.ResultContext += ret.Item2;
+                }
 
             }
             dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =2,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
             response.HttpStatusCode = 500;
-            response.ResultContext = string.Format("{0}项目导入EAS失败", xfile.ProjectID, xfile.CustomID);
+            response.ResultContext = string.Format("{0}项目导入EAS失败,因为：{1}", xfile.ProjectID,response.ResultContext);
             _logger.LogError(response.ResultContext);
             StaticData.X2EasList[key] = "";
             return response;

@@ -491,7 +491,7 @@ namespace XDataMidService
         /// <param name="sqlarr">多条SQL</param>
         /// <param name="param">param</param>
         /// <returns></returns>
-        public  int ExecuteTransactionAndDBSigleUser(string[] sqlarr)
+        public  Tuple<int,string> ExecuteTransactionAndDBSigleUser(string[] sqlarr)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
@@ -507,12 +507,12 @@ namespace XDataMidService
                         }
 
                         transaction.Commit();
-                        return 1;
+                        return new Tuple<int, string>(1,"Committed");
                     }
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        return 0;
+                        return new Tuple<int, string>(0,ex.Message);
                     }
                 }
             }
