@@ -455,7 +455,8 @@ namespace XDataMidService.BPImp
             {
                 string sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'kjqj'";
                 int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
-                string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx, FDetailID) ";
+                string fdid = ", FDetailID";
+                string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx"+fdid+") ";
                 if (pzqj == 1)
                 {                   
                     jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date], DATENAME(year,pz_date)+DATENAME(month,pz_date)   as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
@@ -464,7 +465,7 @@ namespace XDataMidService.BPImp
                        " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
                        " case when jd = '借' and rmb>0	then 1 else -1 end *(rmb) as fsje," +
                        " case when jd = '借' and rmb>0	then 1 else -1 end	as jd, " +
-                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx, FDetailID from jzpz ";                  
+                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx" + fdid + " from jzpz ";                  
                 }
                 else
                 { 
@@ -475,13 +476,13 @@ namespace XDataMidService.BPImp
                        " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
                        " case when jd = '借' and rmb>0	then 1 else -1 end *(rmb) as fsje," +
                        " case when jd = '借' and rmb>0	then 1 else -1 end	as jd, " +
-                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx, FDetailID from jzpz ";
+                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx" + fdid + " from jzpz ";
                 }
                 sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'FDetailID'";
                 int fid = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 if (fid != 1)
                 {
-                    jzpzSQL= jzpzSQL.Replace(", FDetailID","");
+                    jzpzSQL= jzpzSQL.Replace(fdid,"");
                 }
                 SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
                 string expzk = " select 	Pzk_TableName	from	pzk	where	Pzk_TableName!='jzpz' and Pzk_TableName like 'jzpz%' ";
