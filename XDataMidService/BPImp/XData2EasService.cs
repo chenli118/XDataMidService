@@ -40,17 +40,26 @@ namespace XDataMidService.BPImp
             if (_stack.Count > 0)
             {
                 var xf = _stack.Where(x => !StaticData.X2EasList.ContainsValue(StaticUtil.GetLocalDbNameByXFile(x))).FirstOrDefault();
-                var dapper = DapperHelper<xfile>.Create("XDataConn");
-                XDataResponse response = Real2EasImp(xf);
-                if (response.HttpStatusCode == 200)
+                if (xf != null)
                 {
-                    dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =999,projectid='{1}' where xid={0} ", xf.XID, xf.ProjectID), null);
+                    var dapper = DapperHelper<xfile>.Create("XDataConn");
+                    XDataResponse response = Real2EasImp(xf);
+                    if (response.HttpStatusCode == 200)
+                    {
+                        dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =999,projectid='{1}' where xid={0} ", xf.XID, xf.ProjectID), null);
+                    }
+                    else
+                    {
+                        dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =998,projectid='{1}' where xid={0} ", xf.XID, xf.ProjectID), null);
+                    }
+                    _stack.Remove(xf);
                 }
-                else
-                {
-                    dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =998,projectid='{1}' where xid={0} ", xf.XID, xf.ProjectID), null);
-                }
-                _stack.Remove(xf);
+            }
+            else
+            {
+                _timer.Dispose();
+                _timer = null;
+            
             }
         }
 

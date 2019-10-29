@@ -24,6 +24,7 @@ namespace XDataMidService.BPImp
         private string conStr,localDbName, _tempFile;
         private DateTime _beginDate, _endDate;
         private xfile xfile;
+        private bool IsAux = true;
         XDataResponse response;
         public Exception _xdException;
         public PDT2SDT(Models.xfile xf)
@@ -115,7 +116,7 @@ namespace XDataMidService.BPImp
                 return response;
             }
             bool isNotBaseAccount = GetIsExsitsItemClass();
-            if (isNotBaseAccount)
+            if (isNotBaseAccount && IsAux)
             {
                 stepRet = InitFdetail();
                 if (!stepRet)
@@ -454,7 +455,7 @@ namespace XDataMidService.BPImp
             {
                 string sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'kjqj'";
                 int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
-                string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx,FDetailID) ";
+                string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx, FDetailID) ";
                 if (pzqj == 1)
                 {                   
                     jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date], DATENAME(year,pz_date)+DATENAME(month,pz_date)   as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
@@ -475,6 +476,12 @@ namespace XDataMidService.BPImp
                        " case when jd = '借' and rmb>0	then 1 else -1 end *(rmb) as fsje," +
                        " case when jd = '借' and rmb>0	then 1 else -1 end	as jd, " +
                        " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx, FDetailID from jzpz ";
+                }
+                sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'FDetailID'";
+                int fid = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                if (fid != 1)
+                {
+                    jzpzSQL= jzpzSQL.Replace(", FDetailID","");
                 }
                 SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
                 string expzk = " select 	Pzk_TableName	from	pzk	where	Pzk_TableName!='jzpz' and Pzk_TableName like 'jzpz%' ";
@@ -563,7 +570,8 @@ namespace XDataMidService.BPImp
                     accountTable.Rows.Add(dr);
                 }
                 BuildUpperCode(accountTable, conStr);
-                BuildTypeCode(accountTable, conStr);
+                if(IsAux)
+                    BuildTypeCode(accountTable, conStr);
                 string execSQL = " truncate table ACCOUNT ";
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
                 SqlServerHelper.SqlBulkCopy(accountTable, conStr).Wait();
@@ -642,6 +650,14 @@ namespace XDataMidService.BPImp
         {
             try
             {
+                
+                string sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'xm') and name = 'xmdm'";
+                int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                if (pzqj != 1)
+                {
+                    IsAux = false;
+                    return true;
+                }
                 string projectsql = " truncate table PROJECT  ; INSERT  PROJECT   SELECT Distinct '" + xfile.ProjectID + "', LEFT(XMDM, CHARINDEX('.', XMDM)),XMDM,isnull(XMMC,space(0)),NULL,XMJB,XMMX     FROM XM " +
                     " ; update PROJECT set ProjectCode=LTRIM(rtrim(ProjectCode)),TypeCode=LTRIM(rtrim(TypeCode))  ";
                 SqlMapperUtil.CMDExcute(projectsql, null, conStr);

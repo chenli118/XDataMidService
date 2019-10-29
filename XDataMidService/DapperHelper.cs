@@ -199,7 +199,7 @@ namespace XDataMidService
             using (SqlConnection connection = GetOpenConnection(connectionName))
             {
                 SqlCommand sqlCommand = new SqlCommand(sql, connection);
-                sqlCommand.CommandTimeout = 0;
+                sqlCommand.CommandTimeout = 1000*1200;
                 return sqlCommand.ExecuteNonQuery();
             }
         }

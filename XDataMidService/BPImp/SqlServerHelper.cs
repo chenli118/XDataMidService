@@ -58,7 +58,7 @@ namespace XDataMidService.BPImp
                             {
                                 copy.ColumnMappings.Add(new SqlBulkCopyColumnMapping(column.ColumnName, column.ColumnName));
                             }
-                            copy.BulkCopyTimeout = 0;
+                            copy.BulkCopyTimeout = 1000*1200;
                              await copy.WriteToServerAsync(dt);
                             tran.Commit();
                             connection.Close();
