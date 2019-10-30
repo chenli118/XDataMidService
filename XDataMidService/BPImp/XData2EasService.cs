@@ -80,7 +80,7 @@ namespace XDataMidService.BPImp
             }
             StaticData.X2EasList[key] = localDbName;
             var dapper = DapperHelper<xfile>.Create("XDataConn");
-            _logger.LogInformation("开始转换数据： " + localDbName);
+            _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
             string qdb = "select 1 from sys.databases where name ='" + localDbName + "'";
             var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
             if (thisdb != 1)
@@ -167,7 +167,7 @@ namespace XDataMidService.BPImp
                     dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =1,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
                     response.HttpStatusCode = 200;
                     response.ResultContext = string.Format("{0}项目数据{1}导入EAS成功", xfile.ProjectID, localDbName);
-                    _logger.LogInformation(response.ResultContext);
+                    _logger.LogInformation(response.ResultContext +" "+DateTime.Now);
                     StaticData.X2EasList[key] = "";
                     return response;
 
@@ -181,7 +181,7 @@ namespace XDataMidService.BPImp
             dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =2,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
             response.HttpStatusCode = 500;
             response.ResultContext = string.Format("{0}项目导入EAS失败,因为：{1}", xfile.ProjectID,response.ResultContext);
-            _logger.LogError(response.ResultContext);
+            _logger.LogError(response.ResultContext + " " + DateTime.Now);
             StaticData.X2EasList[key] = "";
             return response;
         }

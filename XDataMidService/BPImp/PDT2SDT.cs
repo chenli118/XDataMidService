@@ -438,15 +438,15 @@ namespace XDataMidService.BPImp
 
         }
         private bool GetIsExsitsItemClass()
-        {
-            string sql = "select 1  from sysobjects  where id = object_id('xmye')    and type = 'U'";
-            object ret = DapperHelper<int>.Create("XDataConn", conStr).ExecuteScalar(sql, null);
-            if (ret != null && Convert.ToInt32(ret) == 1)
+        {           
+           
+            if (IsAux)
             {
-                sql = "select 1  from sysobjects  where id = object_id('t_itemclass')    and type = 'U'";
-                ret = DapperHelper<int>.Create("XDataConn", conStr).ExecuteScalar(sql, null);               
+                string sql = "select 1  from sysobjects  where id = object_id('t_itemclass')    and type = 'U'";
+                int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                if (pzqj == 1) return true;
             }
-            return ret != null && Convert.ToInt32(ret) == 1;
+            return false;
         }
         private bool InitVoucher()
         {
@@ -654,6 +654,13 @@ namespace XDataMidService.BPImp
                 
                 string sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'xm') and name = 'xmdm'";
                 int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                if (pzqj != 1)
+                {
+                    IsAux = false;
+                    return true;
+                }
+                sql = "select 1  from sysobjects  where id = object_id('xmye')    and type = 'U'";
+                pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 if (pzqj != 1)
                 {
                     IsAux = false;
