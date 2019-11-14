@@ -10,6 +10,13 @@ namespace XDataMidService.BPImp
 {
     internal class SqlServerHelper
     {
+        public static Tuple<string, string> GetLinkSrvName(string connectInfo, string localCon)
+        {
+            connectInfo = connectInfo.Replace("Asynchronous Processing=true", "");
+            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(connectInfo);
+            string linkSvrName = SqlServerHelper.GetLinkServer(localCon, csb.DataSource, csb.UserID, csb.Password, csb.DataSource);
+            return new Tuple<string, string>(linkSvrName, csb.InitialCatalog);
+        }
         public static string GetLinkServer(string conStr, string sName, string logName, string pwd, string ipAddress)
         {
             string sql = string.Format(" exec sp_addlinkedserver '{0}','','SQLOLEDB','{3}'  " +
@@ -24,14 +31,15 @@ namespace XDataMidService.BPImp
                     var s = sqlCommand.ExecuteScalar();
                     if (s!=null && int.Parse(s.ToString()) == 1)
                     {
-                    
+                        sqlCommand.CommandText = " Exec sp_configure 'remote query timeout',0;  ";
+                        sqlCommand.ExecuteNonQuery();
+                        sqlCommand.CommandText = " RECONFIGURE; ";
                     }
                     else
                     {
-
-                        sqlCommand.CommandText = sql;
-                        sqlCommand.ExecuteNonQuery();
+                        sqlCommand.CommandText = sql;                       
                     }
+                    sqlCommand.ExecuteNonQuery();
                     return sName;
                 }
                 catch (Exception err)

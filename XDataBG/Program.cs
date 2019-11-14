@@ -221,8 +221,7 @@ namespace XDataBG
         }
 
         private static string ConnectionString(string key)
-        {
-            if (!string.IsNullOrWhiteSpace(connectString)) return connectString;
+        { 
             string jsonTxt = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "WebApp.Config.json"));
             var config = JsonDocument.Parse(jsonTxt).RootElement;
             foreach (var prop in config.EnumerateObject())
@@ -244,8 +243,8 @@ namespace XDataBG
         private static void LoadQueue()
         {
             connectString = ConnectionString("XDataConn");
-
-            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  XData2Eas.XDB.dbo.XFiles where xid not in" +
+            string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
+            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  ["+ linkSvr + "].XDB.dbo.XFiles where xid not in" +
                 " (select xid from  XData.dbo.[XFiles]) ";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
@@ -264,6 +263,44 @@ namespace XDataBG
                 }
             }
 
+        }
+        public static string GetLinkServer(string conStr, string sName, string logName, string pwd, string ipAddress)
+        {
+            string sql = string.Format(" exec sp_addlinkedserver '{0}','','SQLOLEDB','{3}'  " +
+                " exec sp_addlinkedsrvlogin '{0}', 'false', NULL, '{1}', '{2}'", sName, logName, pwd, ipAddress);
+            using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(conStr))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    string cmdText = "SELECT 1 FROM sys.servers WHERE name='" + sName + "'";
+                    System.Data.SqlClient.SqlCommand sqlCommand = new System.Data.SqlClient.SqlCommand(cmdText, conn);
+                    var s = sqlCommand.ExecuteScalar();
+                    if (s != null && int.Parse(s.ToString()) == 1)
+                    {
+                        sqlCommand.CommandText = " Exec sp_configure 'remote query timeout',0;  ";
+                        sqlCommand.ExecuteNonQuery();
+                        sqlCommand.CommandText = " RECONFIGURE; ";
+                    }
+                    else
+                    {
+                        sqlCommand.CommandText = sql;
+                    }
+                    sqlCommand.ExecuteNonQuery();
+                    return sName;
+                }
+                catch (Exception err)
+                {
+                    throw err;
+                }
+            }
+        }
+        private static Tuple<string, string> GetLinkSrvName(string connectInfo, string localCon)
+        {
+            connectInfo = connectInfo.Replace("Asynchronous Processing=true", "");
+            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(connectInfo);
+            string linkSvrName = GetLinkServer(localCon, csb.DataSource, csb.UserID, csb.Password, csb.DataSource);
+            return new Tuple<string, string>(linkSvrName, csb.InitialCatalog);
         }
         private static async void WriteLog(string path, string message)
         {

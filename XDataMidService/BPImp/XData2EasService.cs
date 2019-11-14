@@ -91,7 +91,7 @@ namespace XDataMidService.BPImp
             }
             dapper.conStr = constr.Replace("master", localDbName);
             string projectID = xfile.ProjectID;
-            var tbv = GetLinkSrvName(xfile.DbName, constr);
+            var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
             string linkSvrName = tbv.Item1;
             string dbName = tbv.Item2;
             if (!string.IsNullOrEmpty(linkSvrName))
@@ -115,8 +115,11 @@ namespace XDataMidService.BPImp
                     sb.AppendFormat(" delete from  {1}.{2}.dbo.ACCOUNT where projectid ='{0}' ", projectID, linkSvrName, dbName);
                     sb.AppendFormat(" insert into  {1}.{2}.dbo.[ACCOUNT](ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz) select '{0}' as ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz from {3}.dbo.ACCOUNT ", projectID, linkSvrName, dbName, localDbName);
                     sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
+                    sb.AppendFormat(" select hashcode into #hc from {1}.{2}.dbo.TBVoucher t where t.projectid ='{0}' ", projectID, linkSvrName, dbName);
+                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' and hashcode not in(select hashcode from #hc) ", projectID, linkSvrName, dbName);
+                    sb.Append(" go ");
+                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) " +
+                        " select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
                         " from  {3}.dbo.TBVoucher where Date<='" + xfile.periodEndDate + "'", projectID, linkSvrName, dbName, localDbName);
                     sb.Append(" go ");
                     sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
@@ -187,12 +190,6 @@ namespace XDataMidService.BPImp
         }
 
 
-        private Tuple<string, string> GetLinkSrvName(string connectInfo, string localCon)
-        {
-            connectInfo = connectInfo.Replace("Asynchronous Processing=true", "");
-            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(connectInfo);
-            string linkSvrName = SqlServerHelper.GetLinkServer(localCon, csb.DataSource, csb.UserID, csb.Password, csb.DataSource);
-            return new Tuple<string, string>(linkSvrName, csb.InitialCatalog);
-        }
+
     }
 }
