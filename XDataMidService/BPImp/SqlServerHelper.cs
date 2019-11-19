@@ -154,7 +154,7 @@ namespace XDataMidService.BPImp
                 }
 
             }
-            return dt;
+             
         }
 
         public static int ExecuteSql(string sql, string conStr)

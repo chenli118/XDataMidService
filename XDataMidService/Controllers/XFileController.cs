@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using XDataMidService.BPImp;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -24,12 +25,15 @@ namespace XDataMidService.Controllers
         [HttpGet]
         public IEnumerable<Models.xfile> Get()
         {
-          string sql = "insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) " +
-                " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  XData2Eas.XDB.dbo.XFiles where xid not in" +
+            var connectString = StaticUtil.GetConfigValueByKey("XDataConn");
+            var constr = StaticUtil.GetConfigValueByKey("");
+            string linkSvr = SqlServerHelper.GetLinkSrvName(connectString, constr).Item1;
+            string sql = "insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) " +
+                " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  "+ linkSvr + ".XDB.dbo.XFiles where xid not in" +
                 " (select xid from  XData.dbo.[XFiles]) ";
-          SqlMapperUtil.CMDExcute(sql, null, StaticUtil.GetConfigValueByKey("XDataConn"));
+          SqlMapperUtil.CMDExcute(sql, null, connectString);
           string itemclass = "select * from  XFiles";
-          var constr = StaticUtil.GetConfigValueByKey("");
+         
           var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null, constr);
           return tab_ic;
         }

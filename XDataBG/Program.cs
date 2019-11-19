@@ -33,7 +33,7 @@ namespace XDataBG
             }
         }
         static Dictionary<string, int> runDict = new Dictionary<string, int>();
-        public static int HttpHandlePost(string url, string pjson)
+        public static Tuple<int,string> HttpHandlePost(string url, string pjson)
         {
             if (!runDict.ContainsKey(pjson))
             {
@@ -41,7 +41,7 @@ namespace XDataBG
             }
             else
             {
-                if (runDict[pjson] >3) return 3;
+                if (runDict[pjson] >3) return new Tuple<int, string>(3,"超过3次");
             }
             HttpClientHandler httpHandler = new HttpClientHandler();
             string strRet = string.Empty;
@@ -64,7 +64,7 @@ namespace XDataBG
                 string responseMessage = response.Content.ReadAsStringAsync().Result;
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    return 1;
+                    return new Tuple<int, string>(1,"");
                 }
                 else
                 {
@@ -76,12 +76,13 @@ namespace XDataBG
                             if (c.Name == "resultContext")
                             {
                                 Console.WriteLine(c.Value);
+                                strRet = c.Value.ToString();
                                 WriteLog(logfile, DateTime.Now + " " + c.Value);
                             }
                         }
                         
                     } 
-                    return 0;
+                    return new Tuple<int, string>(0, strRet);
                 }
 
             }
@@ -121,8 +122,9 @@ namespace XDataBG
             if (strRet.Length > 0)
             { 
                 WriteLog(logfile, DateTime.Now + " :  " + strRet);
+
             }
-            return -1;
+            return  new Tuple<int,string>(-1,strRet);
         }
 
         private static void FlushData()
@@ -170,17 +172,18 @@ namespace XDataBG
                              xfile.pzEndDate = dr["PZEndDate"].ToString();
                              var pjson = JsonSerializer.Serialize(xfile);
                              Console.WriteLine(xfile.customName + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
-                             int ps = HttpHandlePost("http://192.168.1.209/XData/XData2SQL", pjson);
+                             var  ret = HttpHandlePost("http://192.168.1.209/XData/XData2SQL", pjson);
                              Console.WriteLine(xfile.customName + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
-                             if (ps == 1)
-                             {
-                                 Console.WriteLine(xfile.customName + "  " + xfile.ztName + "start InsertXdata :" + DateTime.Now);
-                                 InsertXdata(dr);
-                                 Console.WriteLine(xfile.customName + "  " + xfile.ztName + "end InsertXdata :" + DateTime.Now);
-                             }
-                                 if (ps == 3)
+                                 if (ret.Item1 == 1)
                                  {
-                                     Console.WriteLine(xfile.customName + "  " + xfile.ztName + "  重试次超过3次，未提交执行 :" + DateTime.Now);
+                                     Console.WriteLine(xfile.customName + "  " + xfile.ztName + "start InsertXdata :" + DateTime.Now);
+                                     InsertXdata(dr);
+                                     Console.WriteLine(xfile.customName + "  " + xfile.ztName + "end InsertXdata :" + DateTime.Now);
+                                 }
+                                 else
+                                 {
+                                     InsertBadFile(dr, ret.Item2);
+                                     DropDB(xfile);
                                  }
                              }
                          });
@@ -199,6 +202,45 @@ namespace XDataBG
 
         }
 
+        private static void DropDB(xfile xfile)
+        {
+            connectString = ConnectionString("XDataConn");
+            string dbname = GetLocalDbNameByXFile(xfile);
+            string sql = " drop database ["+dbname+"]";
+            using (SqlConnection conn = new SqlConnection(connectString))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception err)
+                {
+                    WriteLog(logfile, DateTime.Now + " : " + err.Message);
+                }
+            }
+        }
+        private static void InsertBadFile(DataRow dr,string ErrMsg)
+        {
+            connectString = ConnectionString("XDataConn");
+            string sql = string.Format(" insert into XData.dbo.[badfiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate],[ErrMsg]) select " +
+                "{0},'{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}' ", Convert.ToInt32(dr["XID"]), dr["CustomID"], dr["CustomName"], dr["FileName"], dr["ZTID"],
+                dr["ZTName"], dr["ZTYear"], dr["BeginMonth"], dr["EndMonth"], dr["PZBeginDate"], dr["PZEndDate"], ErrMsg.Replace(@"'", "").Replace("-", ""));
+            using (SqlConnection conn = new SqlConnection(connectString))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception err)
+                {
+                    WriteLog(logfile, DateTime.Now + " : " + err.Message);
+                }
+            }
+        }
         private static void InsertXdata(DataRow dr)
         {
             connectString = ConnectionString("XDataConn");
@@ -219,7 +261,21 @@ namespace XDataBG
                 }
             }
         }
-
+        public static string GetLocalDbNameByXFile(xfile xfile)
+        {
+            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.customID.Replace("-", "") + xfile.ztYear + xfile.pzBeginDate + xfile.pzEndDate);
+            StringBuilder sb = new StringBuilder();
+            Array.ForEach(asciiBytes, (c) =>
+            {
+                if ((c > 47 && c < 58)
+                || (c > 64 && c < 91)
+                || (c > 96 && c < 123))
+                { sb.Append((char)c); }
+            });
+            string dbName = sb.ToString();
+            if (dbName.Length > 50) dbName = dbName.Substring(0, 49);
+            return dbName;
+        }
         private static string ConnectionString(string key)
         { 
             string jsonTxt = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "WebApp.Config.json"));
@@ -245,7 +301,7 @@ namespace XDataBG
             connectString = ConnectionString("XDataConn");
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
             string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  ["+ linkSvr + "].XDB.dbo.XFiles where xid not in" +
-                " (select xid from  XData.dbo.[XFiles]) ";
+                " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])  order by xid desc ";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try

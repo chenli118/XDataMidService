@@ -670,23 +670,23 @@ namespace XDataMidService.BPImp
                     " ; update PROJECT set ProjectCode=LTRIM(rtrim(ProjectCode)),TypeCode=LTRIM(rtrim(TypeCode))  ";
                 SqlMapperUtil.CMDExcute(projectsql, null, conStr);
 
-                string mxjb = " select MAX(JB) from [ProJect]";
-                int mj = SqlMapperUtil.SqlWithParamsSingle<int>(mxjb, null, conStr);
-                if (mj < 4)
-                {
-                    string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1 AND p1.UPPERCODE IS NULL	 ";
-                    SqlMapperUtil.CMDExcute(jbsql, null, conStr);
-                }
-                else
-                {
-                    int m = 1;
-                    while (m != mj)
-                    {
-                        m = m + 1;
-                        string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1  AND p1.UPPERCODE IS NULL  and p2.JB<=" + m;
-                        SqlMapperUtil.CMDExcute(jbsql, null, conStr);
-                    }
-                }
+                //string mxjb = " select MAX(JB) from [ProJect]";
+                //int mj = SqlMapperUtil.SqlWithParamsSingle<int>(mxjb, null, conStr);
+                //if (mj < 4)
+                //{
+                //    string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1 AND p1.UPPERCODE IS NULL	 ";
+                //    SqlMapperUtil.CMDExcute(jbsql, null, conStr);
+                //}
+                //else
+                //{
+                //    int m = 1;
+                //    while (m != mj)
+                //    {
+                //        m = m + 1;
+                //        string jbsql = "update  p1 set  p1.UPPERCODE = p2.PROJECTCODE  from ProJect p1 join ProJect p2 on p1.JB =p2.JB+1  and p1.TYPECODE = p2.TYPECODE   and  left(p1.PROJECTCODE,len(p2.PROJECTCODE)) = p2.PROJECTCODE and p1.jb>1  AND p1.UPPERCODE IS NULL  and p2.JB<=" + m;
+                //        SqlMapperUtil.CMDExcute(jbsql, null, conStr);
+                //    }
+                //}
 
 
                 string projecttypesql = " truncate table ProjectType  ; INSERT  ProjectType  SELECT   '" + xfile.ProjectID + "', FITEMID,FName FROM t_itemclass" +
