@@ -14,24 +14,35 @@ namespace XDataMidService.BPImp
     public class XData2EasService
     {
         private static ILogger<XDataController> _logger;
-        private static System.Threading.Timer _timer;
-        public static  List<xfile> _stack ;
-        public List<xfile> stack
+        private static System.Timers.Timer _timer;
+        public static List<xfile> _stack;
+        public xfile Xfile
         {
-            get { return _stack; } 
+            set
+            {
+                _stack.Add(value);
+                if (_timer == null)
+                { 
+                    _timer = new System.Timers.Timer(10000);
+                    _timer.Elapsed += _timer_Elapsed; ;
+                    _timer.AutoReset = true;
+                    _timer.Enabled = true;
+                    _timer.Start();
+                }               
+            }
         }
+
+        private void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            DoProcessList();
+        }
+
         public XData2EasService(ILogger<XDataController> logger)
         {
-            _logger = logger; 
+            _logger = logger;
             if (_stack == null)
             {
                 _stack = new List<xfile>();
-            }
-            if (_timer == null && _stack.Count>0)
-            {
-                var autoEvent = new AutoResetEvent(false);
-                _timer = new Timer(p => DoProcessList(), autoEvent, 0, 10000); //定时清理队列;
-                autoEvent.WaitOne();
             }
         }
 
@@ -57,9 +68,13 @@ namespace XDataMidService.BPImp
             }
             else
             {
-                _timer.Dispose();
+                if (_timer != null)
+                {
+                    _timer.Stop();
+                    _timer.Enabled = false;
+                }
                 _timer = null;
-            
+
             }
         }
 
@@ -165,13 +180,13 @@ namespace XDataMidService.BPImp
 
                 }
                 string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);
-                var  ret = dapper.ExecuteTransactionAndDBSigleUser(sqlarr);
+                var ret = dapper.ExecuteTransactionAndDBSigleUser(sqlarr);
                 if (ret.Item1 > 0)
                 {
                     dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =1,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
                     response.HttpStatusCode = 200;
                     response.ResultContext = string.Format("{0}项目数据{1}导入EAS成功", xfile.ProjectID, localDbName);
-                    _logger.LogInformation(response.ResultContext +" "+DateTime.Now);
+                    _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
                     StaticData.X2EasList[key] = "";
                     return response;
 
@@ -184,7 +199,7 @@ namespace XDataMidService.BPImp
             }
             dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =2,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
             response.HttpStatusCode = 500;
-            response.ResultContext = string.Format("{0}项目导入EAS失败,因为：{1}", xfile.ProjectID,response.ResultContext);
+            response.ResultContext = string.Format("{0}项目导入EAS失败,因为：{1}", xfile.ProjectID, response.ResultContext);
             _logger.LogError(response.ResultContext + " " + DateTime.Now);
             StaticData.X2EasList[key] = "";
             return response;

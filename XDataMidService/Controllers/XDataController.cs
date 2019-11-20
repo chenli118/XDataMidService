@@ -79,7 +79,9 @@ namespace XDataMidService.Controllers
             XData2EasService easService = new XData2EasService(_logger);
             if (StaticData.X2EasList.ContainsValue(localDbName))
             {
-                easService.stack.Add(xfile);
+                System.Threading.Tasks.Task.Factory.StartNew(()=> {
+                    easService.Xfile = xfile;
+                });               
                 response.HttpStatusCode = 200;
                 response.ResultContext = xfile.XID + "|" + xfile.ProjectID;
                 return Ok(response).ExecuteResultAsync(_context);
