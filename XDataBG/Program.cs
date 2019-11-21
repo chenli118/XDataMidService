@@ -23,9 +23,9 @@ namespace XDataBG
         private static object obj_lock = new object();
         static void Main(string[] args)
         {
-            bool bCreate = true;
-            Mutex mt = new Mutex(false, "XDataBG", out bCreate);
-            if (bCreate)
+            //bool bCreate = true;
+            //Mutex mt = new Mutex(false, "XDataBG", out bCreate);
+            //if (bCreate)
             {
                 var autoEvent = new AutoResetEvent(false);
                 _timer = new Timer(p => FlushData(), autoEvent, 0, 10000);
@@ -171,14 +171,14 @@ namespace XDataBG
                              xfile.pzBeginDate = dr["PZBeginDate"].ToString();
                              xfile.pzEndDate = dr["PZEndDate"].ToString();
                              var pjson = JsonSerializer.Serialize(xfile);
-                             Console.WriteLine(xfile.customName + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
+                             Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
                              var  ret = HttpHandlePost("http://192.168.1.209/XData/XData2SQL", pjson);
-                             Console.WriteLine(xfile.customName + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
+                             Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
                                  if (ret.Item1 == 1)
                                  {
-                                     Console.WriteLine(xfile.customName + "  " + xfile.ztName + "start InsertXdata :" + DateTime.Now);
+                                     Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start InsertXdata :" + DateTime.Now);
                                      InsertXdata(dr);
-                                     Console.WriteLine(xfile.customName + "  " + xfile.ztName + "end InsertXdata :" + DateTime.Now);
+                                     Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end InsertXdata :" + DateTime.Now);
                                  }
                                  else
                                  {
@@ -263,7 +263,7 @@ namespace XDataBG
         }
         public static string GetLocalDbNameByXFile(xfile xfile)
         {
-            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.customID.Replace("-", "") + xfile.ztYear + xfile.pzBeginDate + xfile.pzEndDate);
+            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.xID+xfile.customID.Replace("-", "") + xfile.ztYear + xfile.pzBeginDate + xfile.pzEndDate);
             StringBuilder sb = new StringBuilder();
             Array.ForEach(asciiBytes, (c) =>
             {
@@ -299,9 +299,11 @@ namespace XDataBG
         private static void LoadQueue()
         {
             connectString = ConnectionString("XDataConn");
+            var whereas = ConnectionString("Whereas");
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
             string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  ["+ linkSvr + "].XDB.dbo.XFiles where xid not in" +
-                " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])  order by xid desc ";
+                " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])" +
+                " and  "+ whereas+" ";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try

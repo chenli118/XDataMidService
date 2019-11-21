@@ -18,7 +18,7 @@ namespace XDataMidService
         }
         public static string GetLocalDbNameByXFile(XDataMidService.Models.xfile xfile)
         {
-            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.CustomID.Replace("-","")+ xfile.ZTYear + xfile.PZBeginDate + xfile.PZEndDate);
+            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.XID+xfile.CustomID.Replace("-","")+ xfile.ZTYear + xfile.PZBeginDate + xfile.PZEndDate);
             StringBuilder sb = new StringBuilder();
             Array.ForEach(asciiBytes, (c) =>
             {
