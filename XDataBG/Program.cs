@@ -303,7 +303,7 @@ namespace XDataBG
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
             string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  ["+ linkSvr + "].XDB.dbo.XFiles where xid not in" +
                 " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])" +
-                " and  "+ whereas+" ";
+                " and  "+ whereas+"   order by xid desc ";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try

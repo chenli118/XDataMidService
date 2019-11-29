@@ -92,17 +92,25 @@ namespace XDataMidService.BPImp
             else if (StaticData.X2EasList[key] == localDbName)
             {
                 response.ResultContext = key + " 已经在执行过程中...";
+                StaticData.X2EasList[key] = "";
                 return response;
             }
             StaticData.X2EasList[key] = localDbName;
             var dapper = DapperHelper<xfile>.Create("XDataConn");
             _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
-            string qdb = "select 1 from sys.databases where name ='" + localDbName + "'";
+            string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID ;
             var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
             if (thisdb != 1)
             {
                 response.ResultContext = localDbName + " 数据没有准备！ ";
                 response.HttpStatusCode = 500;
+                qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
+                var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
+                if (!string.IsNullOrWhiteSpace(errmsg))
+                {
+                    response.ResultContext = xfile.XID + "  "+ errmsg + "！ ";
+                }
+                StaticData.X2EasList[key] = "";
                 return response;
             }
             dapper.conStr = constr.Replace("master", localDbName);

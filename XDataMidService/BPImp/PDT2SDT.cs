@@ -46,7 +46,8 @@ namespace XDataMidService.BPImp
                 var ndc = new MinniDown(wp_host, logname, logpwd);
 
                 FileInfo fileInfo = new FileInfo(xf.FileName);
-                var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", xf.ZTID);
+                localDbName = StaticUtil.GetLocalDbNameByXFile(xf);
+                var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", localDbName);
                 if (!Directory.Exists(tempFolder)) Directory.CreateDirectory(tempFolder);
                 _tempFile = Path.Combine(tempFolder.Replace('/', '\\'), fileInfo.Name);
                 if (File.Exists(_tempFile))
@@ -326,13 +327,13 @@ namespace XDataMidService.BPImp
                     DataRow dr = auxTable.NewRow();
                     dr["XID"] = 0;
                     dr["ProjectID"] = xfile.ProjectID;
-                    dr["AccountCode"] = vd.accountcode;
-                    dr["AuxiliaryCode"] = vd.AuxiliaryCode;
+                    dr["AccountCode"] = vd.accountcode.Trim();
+                    dr["AuxiliaryCode"] = vd.AuxiliaryCode.Trim();
                     dr["AuxiliaryName"] = vd.AuxiliaryName;
                     dr["FSCode"] = string.Empty;
                     dr["kmsx"] = 0;
                     dr["YEFX"] = 0;
-                    dr["TBGrouping"] = vd.accountcode;
+                    dr["TBGrouping"] = vd.accountcode.Trim();
                     dr["Sqqmye"] = vd.Sqqmye == null ? 0M : vd.Sqqmye;
                     dr["Qqccgz"] = 0M;
                     dr["jfje"] = 0M;
@@ -459,7 +460,8 @@ namespace XDataMidService.BPImp
                 string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx"+fdid+") ";
                 if (pzqj == 1)
                 {                   
-                    jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date], DATENAME(year,pz_date)+DATENAME(month,pz_date)   as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
+                    jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date], DATENAME(year,pz_date)+DATENAME(month,pz_date)   as Period ,Pzh,isnull(fjzs,space(0)) as Djh," +
+                        "ltrim(rtrim(Kmdm)) as AccountCode ," +
                        " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
                        " case when jd = '贷' then rmb else 0 end as dfje,  " +
                        " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
@@ -470,7 +472,8 @@ namespace XDataMidService.BPImp
                 else
                 { 
                     jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, CONVERT(date, '"+xfile.ZTYear+"'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))) as [date]," +
-                        "  '" + xfile.ZTYear + "'+   DATENAME(month, CONVERT(date, '" + xfile.ZTYear + "'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))))  as Period ,Pzh,isnull(fjzs,space(0)) as Djh,Kmdm as AccountCode ," +
+                        "  '" + xfile.ZTYear + "'+   DATENAME(month, CONVERT(date, '" + xfile.ZTYear + "'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))))  as Period ,Pzh,isnull(fjzs,space(0)) as Djh," +
+                        "ltrim(rtrim(Kmdm)) as AccountCode ," +
                        " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
                        " case when jd = '贷' then rmb else 0 end as dfje,  " +
                        " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
