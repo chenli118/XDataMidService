@@ -23,6 +23,7 @@ namespace XDataMidService.BPImp
             _logName = logName;
             _logPwd = logPwd;
             httpClient = new  HttpClient();
+            httpClient.Timeout = TimeSpan.FromMinutes(15);
             GetToken(out _token);
         }
         
@@ -116,8 +117,7 @@ namespace XDataMidService.BPImp
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.Add("Authorization", "Token " + _token);
                 httpClient.DefaultRequestHeaders.Add("Accept", "application/json; indent=4");
-                httpClient.DefaultRequestHeaders.Add("KeepAlive", "true");
-
+                httpClient.DefaultRequestHeaders.Add("KeepAlive", "true");               
                 response = httpClient.GetAsync(downloadURL).Result;
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {

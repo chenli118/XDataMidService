@@ -41,7 +41,7 @@ namespace XDataBG
             }
             else
             {
-                if (runDict[pjson] >3) return new Tuple<int, string>(3,"超过3次");
+                //if (runDict[pjson] >3) return new Tuple<int, string>(3,"超过3次");
             }
             HttpClientHandler httpHandler = new HttpClientHandler();
             string strRet = string.Empty;
