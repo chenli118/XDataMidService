@@ -244,9 +244,9 @@ namespace XDataBG
         private static void InsertXdata(DataRow dr)
         {
             connectString = ConnectionString("XDataConn");
-            string sql = string.Format(" insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) select " +
-                "{0},'{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}' ", Convert.ToInt32(dr["XID"]), dr["CustomID"], dr["CustomName"], dr["FileName"], dr["ZTID"],
-                dr["ZTName"], dr["ZTYear"], dr["BeginMonth"], dr["EndMonth"], dr["PZBeginDate"], dr["PZEndDate"]);
+            string sql = string.Format(" insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate],  [unPackageDate] ) select " +
+                "{0},'{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}' ", Convert.ToInt32(dr["XID"]), dr["CustomID"], dr["CustomName"], dr["FileName"], dr["ZTID"],
+                dr["ZTName"], dr["ZTYear"], dr["BeginMonth"], dr["EndMonth"], dr["PZBeginDate"], dr["PZEndDate"],DateTime.Now);
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try
@@ -385,7 +385,7 @@ namespace XDataBG
         public int fileSize { get; set; }
         public string uploadUser { get; set; }
         public DateTime uploadTime { get; set; }
-
+        public DateTime unPackageDate { get; set; }
         public string wp_GUID { get; set; }
         public string projectID { get; set; }
         public string dbName { get; set; }

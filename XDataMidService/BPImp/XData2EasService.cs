@@ -85,6 +85,13 @@ namespace XDataMidService.BPImp
             string constr = StaticUtil.GetConfigValueByKey("XDataConn");
             string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
             string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
+            if (StaticData.X2SqlList.ContainsKey(key) && StaticData.X2SqlList[key] == 1)
+            {
+                response.ResultContext = localDbName + " 数据正在准备中！ ";
+                response.HttpStatusCode = 500;
+                return response;
+            }
+
             if (!StaticData.X2EasList.ContainsKey(key))
             {
                 StaticData.X2EasList.Add(key, localDbName);
