@@ -109,7 +109,7 @@ namespace XDataMidService.BPImp
             var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
             if (thisdb != 1)
             {
-                response.ResultContext = localDbName + " 数据没有准备！ ";
+                response.ResultContext = xfile.XID + ": 数据没有准备！ ";
                 response.HttpStatusCode = 500;
                 qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
                 var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
@@ -117,6 +117,7 @@ namespace XDataMidService.BPImp
                 {
                     response.ResultContext = xfile.XID + "  "+ errmsg + "！ ";
                 }
+                _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
                 StaticData.X2EasList[key] = "";
                 return response;
             }

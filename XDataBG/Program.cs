@@ -33,7 +33,7 @@ namespace XDataBG
             }
         }
         static Dictionary<string, int> runDict = new Dictionary<string, int>();
-        public static Tuple<int,string> HttpHandlePost(string url, string pjson)
+        public static Tuple<int, string> HttpHandlePost(string url, string pjson)
         {
             if (!runDict.ContainsKey(pjson))
             {
@@ -60,11 +60,11 @@ namespace XDataBG
                 httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
                 httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
                 postContent = new StringContent(pjson, Encoding.UTF8, "application/json");
-                response = httpClient.PostAsync(uri, postContent,cts).Result;
+                response = httpClient.PostAsync(uri, postContent, cts).Result;
                 string responseMessage = response.Content.ReadAsStringAsync().Result;
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    return new Tuple<int, string>(1,"");
+                    return new Tuple<int, string>(1, "");
                 }
                 else
                 {
@@ -80,8 +80,8 @@ namespace XDataBG
                                 WriteLog(logfile, DateTime.Now + " " + c.Value);
                             }
                         }
-                        
-                    } 
+
+                    }
                     return new Tuple<int, string>(0, strRet);
                 }
 
@@ -95,7 +95,7 @@ namespace XDataBG
                 }
                 else
                 {
-                    strRet += ex.Message + "  超时" ;
+                    strRet += ex.Message + "  超时";
                     Console.WriteLine(strRet);
                 }
             }
@@ -120,42 +120,42 @@ namespace XDataBG
                     response.Dispose();
             }
             if (strRet.Length > 0)
-            { 
+            {
                 WriteLog(logfile, DateTime.Now + " :  " + strRet);
 
             }
-            return  new Tuple<int,string>(-1,strRet);
+            return new Tuple<int, string>(-1, strRet);
         }
 
         private static void FlushData()
         {
             if (bRunning) return;
             try
-            {                
-               
-                    bRunning = true;
-                    customDb = new Dictionary<string, List<DataRow>>();
-                    QueueTable = new DataTable();
-                    LoadQueue();
-                    if (QueueTable == null || QueueTable.Rows.Count == 0)
+            {
+
+                bRunning = true;
+                customDb = new Dictionary<string, List<DataRow>>();
+                QueueTable = new DataTable();
+                LoadQueue();
+                if (QueueTable == null || QueueTable.Rows.Count == 0)
+                {
+                    bRunning = false;
+                    Console.WriteLine("Nothing Todo :" + DateTime.Now);
+                    return;
+                }
+
+                foreach (DataRow row in QueueTable.Rows)
+                {
+                    string XID = row["XID"].ToString();
+                    if (!customDb.ContainsKey(XID))
                     {
-                        bRunning = false;
-                        Console.WriteLine("Nothing Todo :" + DateTime.Now);
-                        return;
+                        customDb.Add(XID, QueueTable.Rows.Cast<DataRow>().Where(x => x["XID"].ToString() == XID).ToList());
                     }
-                  
-                    foreach (DataRow row in QueueTable.Rows)
-                    {
-                        string XID = row["XID"].ToString();
-                        if (!customDb.ContainsKey(XID))
-                        {
-                            customDb.Add(XID, QueueTable.Rows.Cast<DataRow>().Where(x => x["XID"].ToString() == XID).ToList());
-                        }
-                    }
-                    if (customDb.Count > 0)
-                    {
-                        Parallel.ForEach(customDb, (c, loopstate) =>
-                         {
+                }
+                if (customDb.Count > 0)
+                {
+                    Parallel.ForEach(customDb, (c, loopstate) =>
+                     {
                          lock (obj_lock)
                          {
                              DataRow dr = c.Value[0];
@@ -172,23 +172,20 @@ namespace XDataBG
                              xfile.pzEndDate = dr["PZEndDate"].ToString();
                              var pjson = JsonSerializer.Serialize(xfile);
                              Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
-                             var  ret = HttpHandlePost("http://192.168.1.209/XData/XData2SQL", pjson);
+                             var ret = HttpHandlePost("http://192.168.1.209/XData/XData2SQL", pjson);
                              Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
-                                 if (ret.Item1 == 1)
-                                 {
-                                     Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start InsertXdata :" + DateTime.Now);
-                                     InsertXdata(dr);
-                                     Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end InsertXdata :" + DateTime.Now);
-                                 }
-                                 else
-                                 {
-                                     InsertBadFile(dr, ret.Item2);
-                                     DropDB(xfile);
-                                 }
+                             if (ret.Item1 == 1)
+                             {
+                                 Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
                              }
-                         });
-                    }
-                
+                             else
+                             {
+                                 Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Fail !" + DateTime.Now);
+                             }
+                         }
+                     });
+                }
+
             }
             catch (Exception exception)
             {
@@ -202,82 +199,9 @@ namespace XDataBG
 
         }
 
-        private static void DropDB(xfile xfile)
-        {
-            connectString = ConnectionString("XDataConn");
-            string dbname = GetLocalDbNameByXFile(xfile);
-            string sql = " drop database ["+dbname+"]";
-            using (SqlConnection conn = new SqlConnection(connectString))
-            {
-                try
-                {
-                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception err)
-                {
-                    WriteLog(logfile, DateTime.Now + " : " + err.Message);
-                }
-            }
-        }
-        private static void InsertBadFile(DataRow dr,string ErrMsg)
-        {
-            connectString = ConnectionString("XDataConn");
-            string sql = string.Format(" insert into XData.dbo.[badfiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate],[ErrMsg]) select " +
-                "{0},'{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}' ", Convert.ToInt32(dr["XID"]), dr["CustomID"], dr["CustomName"], dr["FileName"], dr["ZTID"],
-                dr["ZTName"], dr["ZTYear"], dr["BeginMonth"], dr["EndMonth"], dr["PZBeginDate"], dr["PZEndDate"], ErrMsg.Replace(@"'", "").Replace("-", ""));
-            using (SqlConnection conn = new SqlConnection(connectString))
-            {
-                try
-                {
-                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception err)
-                {
-                    WriteLog(logfile, DateTime.Now + " : " + err.Message);
-                }
-            }
-        }
-        private static void InsertXdata(DataRow dr)
-        {
-            connectString = ConnectionString("XDataConn");
-            string sql = string.Format(" insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate],  [unPackageDate] ) select " +
-                "{0},'{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}' ", Convert.ToInt32(dr["XID"]), dr["CustomID"], dr["CustomName"], dr["FileName"], dr["ZTID"],
-                dr["ZTName"], dr["ZTYear"], dr["BeginMonth"], dr["EndMonth"], dr["PZBeginDate"], dr["PZEndDate"],DateTime.Now);
-            using (SqlConnection conn = new SqlConnection(connectString))
-            {
-                try
-                {
-                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception err)
-                {
-                    WriteLog(logfile, DateTime.Now + " : " + err.Message);
-                }
-            }
-        }
-        public static string GetLocalDbNameByXFile(xfile xfile)
-        {
-            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.xID+xfile.customID.Replace("-", "") + xfile.ztYear + xfile.pzBeginDate + xfile.pzEndDate);
-            StringBuilder sb = new StringBuilder();
-            Array.ForEach(asciiBytes, (c) =>
-            {
-                if ((c > 47 && c < 58)
-                || (c > 64 && c < 91)
-                || (c > 96 && c < 123))
-                { sb.Append((char)c); }
-            });
-            string dbName = sb.ToString();
-            if (dbName.Length > 50) dbName = dbName.Substring(0, 49);
-            return dbName;
-        }
+
         private static string ConnectionString(string key)
-        { 
+        {
             string jsonTxt = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "WebApp.Config.json"));
             var config = JsonDocument.Parse(jsonTxt).RootElement;
             foreach (var prop in config.EnumerateObject())
@@ -301,9 +225,10 @@ namespace XDataBG
             connectString = ConnectionString("XDataConn");
             var whereas = ConnectionString("Whereas");
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
-            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  ["+ linkSvr + "].XDB.dbo.XFiles where xid not in" +
+            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  [" + linkSvr + "].XDB.dbo.XFiles where xid not in" +
                 " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])" +
-                " and  "+ whereas+"   order by xid desc ";
+                " and  CustomID in ( select nmclientid from  [" + linkSvr + "].neweasv5.[dbo].[ClientBasicInfo])" +
+                " and  " + whereas + "   order by xid desc ";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try

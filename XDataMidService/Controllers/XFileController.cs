@@ -28,13 +28,12 @@ namespace XDataMidService.Controllers
             var connectString = StaticUtil.GetConfigValueByKey("XDataConn");
             var constr = StaticUtil.GetConfigValueByKey("");
             string linkSvr = SqlServerHelper.GetLinkSrvName(connectString, constr).Item1;
-            string sql = "insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) " +
-                " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  "+ linkSvr + ".XDB.dbo.XFiles where xid not in" +
-                " (select xid from  XData.dbo.[XFiles]) ";
-          SqlMapperUtil.CMDExcute(sql, null, connectString);
-          string itemclass = "select * from  XFiles";
+            //string sql = "insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) " +
+            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  " + linkSvr + ".XDB.dbo.XFiles "//where xid not in"  (select xid from  XData.dbo.[XFiles]) ";
+          //SqlMapperUtil.CMDExcute(sql, null, connectString);
+          //string itemclass = "select * from  XFiles";
          
-          var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(itemclass, null, constr);
+          var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(sql, null, constr);
           return tab_ic;
         }
         [Route("[action]/{xids}")]

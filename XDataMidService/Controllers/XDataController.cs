@@ -50,21 +50,38 @@ namespace XDataMidService.Controllers
                 response = dT2SDT.Start();
                 if (response.HttpStatusCode == 200)
                 {
-                    StaticData.X2SqlList[key]++;
-                    _logger.LogInformation(xfile.ZTName + " " + response.ResultContext + " " + DateTime.Now);
-                    return Ok(response).ExecuteResultAsync(_context);
+                    try
+                    {
+                        BPImp.XDataBP.InsertXdata(xfile);
+                        StaticData.X2SqlList[key]++;
+                        _logger.LogInformation(xfile.ZTName + " " + response.ResultContext + " " + DateTime.Now);
+                        return Ok(response).ExecuteResultAsync(_context);
+                    }
+                    catch (Exception err)
+                    {
+                        _logger.LogError(xfile.ZTName + "   " + err.Message + " " + DateTime.Now);
+                    }
                 }
                 else
                 {
-                    StaticData.X2SqlList[key]++;
-                    _logger.LogError(xfile.ZTName + " " + response.ResultContext + " " + DateTime.Now);
-                    response.ResultContext = response.ResultContext + "||" + dT2SDT._xdException.Message;
+                    try
+                    {
+                        StaticData.X2SqlList[key]++;                       
+                        response.ResultContext = response.ResultContext + "||" + dT2SDT._xdException.Message;
+                        XDataBP.InsertBadFile(xfile, response.ResultContext);
+                        XDataBP.DropDB(xfile);
+                    }
+                    catch (Exception err)
+                    {
+                        _logger.LogError(xfile.ZTName + " " + response.ResultContext + " " +err.Message + " " + DateTime.Now);
+                    }
                     return BadRequest(response).ExecuteResultAsync(_context);
                 }
             }
             StaticData.X2SqlList[key] = 0;
             string errMsg = string.Format("{0} 从网盘下载账套{1}文件 {2} 失败: ", xfile.CustomName, xfile.ZTName, xfile.FileName);
             _logger.LogError(errMsg);
+            XDataBP.InsertBadFile(xfile, errMsg);
             response.ResultContext = errMsg;
             return BadRequest(response).ExecuteResultAsync(_context);
 
