@@ -143,21 +143,25 @@ namespace XDataBG
                     Console.WriteLine("Nothing Todo :" + DateTime.Now);
                     return;
                 }
-
-                foreach (DataRow row in QueueTable.Rows)
+                else
                 {
-                    string XID = row["XID"].ToString();
-                    if (!customDb.ContainsKey(XID))
+                    customDb.Clear();
+                    foreach (DataRow row in QueueTable.Rows)
                     {
-                        customDb.Add(XID, QueueTable.Rows.Cast<DataRow>().Where(x => x["XID"].ToString() == XID).ToList());
+                        string XID = row["XID"].ToString();
+                        if (!customDb.ContainsKey(XID))
+                        {
+                            customDb.Add(XID, QueueTable.Rows.Cast<DataRow>().Where(x => x["XID"].ToString() == XID).ToList());
+                        }
                     }
                 }
                 if (customDb.Count > 0)
                 {
-                    Parallel.ForEach(customDb, (c, loopstate) =>
+                    ParallelOptions parallelOptions = new ParallelOptions();
+                    parallelOptions.MaxDegreeOfParallelism = 2;
+                    Parallel.ForEach(customDb, parallelOptions, (c, loopstate) =>
                      {
-                         lock (obj_lock)
-                         {
+                      
                              DataRow dr = c.Value[0];
                              xfile xfile = new xfile();
                              xfile.wp_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
@@ -165,6 +169,7 @@ namespace XDataBG
                              xfile.customName = dr["CustomName"].ToString();
                              xfile.ztName = dr["ZTName"].ToString();
                              xfile.xID = Convert.ToInt32(dr["XID"]);
+                             if (ExistsXID(xfile.xID)) return;
                              xfile.customID = dr["CustomID"].ToString();
                              xfile.ztid = dr["ZTID"].ToString();
                              xfile.ztYear = dr["ZTYear"].ToString();
@@ -190,7 +195,7 @@ namespace XDataBG
                              {
                                  Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Fail !" + DateTime.Now);
                              }
-                         }
+                         
                      });
                 }
 
@@ -206,7 +211,28 @@ namespace XDataBG
 
 
         }
+        private static bool ExistsXID(int xid)
+        {
+            connectString = ConnectionString("XDataConn");
+            string sql = "select xid from  XData.dbo.[xfiles] where xid="+xid;
+            using (SqlConnection conn = new SqlConnection(connectString))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    var id = cmd.ExecuteScalar();
+                    if (id != null && Convert.ToInt32(id) > 1)
+                        return true;
 
+                }
+                catch (Exception err)
+                {
+                    WriteLog(logfile, DateTime.Now + " : " + err.Message);
+                }
+                return false;
+            }
+        }
 
         private static string ConnectionString(string key)
         {
@@ -237,7 +263,7 @@ namespace XDataBG
                 " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])" +
                 " and xid not in(select xid from  XData.dbo.[repeatdb])" +
                 " and  CustomID in ( select nmclientid from  [" + linkSvr + "].neweasv5.[dbo].[ClientBasicInfo])" +
-                " and  " + whereas + "   order by xid desc ";
+                " and  " + whereas + "   order by xid  ";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try
