@@ -190,7 +190,7 @@ namespace XDataMidService
         public static int InsertUpdateOrDeleteSql(string sql, dynamic parms, string connectionName = null)
         {   
             using (SqlConnection connection = GetOpenConnection(connectionName))
-            {
+            { 
                 return connection.Execute(sql, (object)parms);
             }
         }

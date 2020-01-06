@@ -172,7 +172,15 @@ namespace XDataBG
                              xfile.pzEndDate = dr["PZEndDate"].ToString();
                              var pjson = JsonSerializer.Serialize(xfile);
                              Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
-                             var ret = HttpHandlePost("http://192.168.1.209/XData/XData2SQL", pjson);
+                             Tuple<int, string> ret = null;
+                             if (xfile.xID % 2 == 0)
+                             {
+                                 ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2SQL", pjson);
+                             }
+                             else
+                             {
+                                 ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2SQL", pjson);
+                             }
                              Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
                              if (ret.Item1 == 1)
                              {
@@ -227,6 +235,7 @@ namespace XDataBG
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
             string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  [" + linkSvr + "].XDB.dbo.XFiles where xid not in" +
                 " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])" +
+                " and xid not in(select xid from  XData.dbo.[repeatdb])" +
                 " and  CustomID in ( select nmclientid from  [" + linkSvr + "].neweasv5.[dbo].[ClientBasicInfo])" +
                 " and  " + whereas + "   order by xid desc ";
             using (SqlConnection conn = new SqlConnection(connectString))

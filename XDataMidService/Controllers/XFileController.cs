@@ -29,9 +29,7 @@ namespace XDataMidService.Controllers
             var constr = StaticUtil.GetConfigValueByKey("");
             string linkSvr = SqlServerHelper.GetLinkSrvName(connectString, constr).Item1;
             //string sql = "insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) " +
-            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  " + linkSvr + ".XDB.dbo.XFiles "//where xid not in"  (select xid from  XData.dbo.[XFiles]) ";
-          //SqlMapperUtil.CMDExcute(sql, null, connectString);
-          //string itemclass = "select * from  XFiles";
+            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  " + linkSvr + ".XDB.dbo.XFiles ";//where xid not in"  (select xid from  XData.dbo.[XFiles]) ";        
          
           var tab_ic = SqlMapperUtil.SqlWithParams<Models.xfile>(sql, null, constr);
           return tab_ic;
@@ -49,15 +47,7 @@ namespace XDataMidService.Controllers
         public string Get(int id)
         {
             return "value";
-        }
-
-        //POST api/<controller>
-        //[HttpPost]
-
-        //public void Post([FromBody] Models.Person value)
-        //{
-
-
+        } 
 
         //}
         [HttpPost]
@@ -66,15 +56,7 @@ namespace XDataMidService.Controllers
 
 
 
-        }
-        // POST api/<controller>
-        //[HttpPost] 
-        //public void Post(Models.xfile value)
-        //{
-
-
-
-        //}
+        } 
 
         // PUT api/<controller>/5
         [HttpPut("{id}")]

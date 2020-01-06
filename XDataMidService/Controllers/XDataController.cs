@@ -59,6 +59,8 @@ namespace XDataMidService.Controllers
                     }
                     catch (Exception err)
                     {
+                        BPImp.XDataBP.DeleteXdataByID(xfile);
+                        XDataBP.DropDB(xfile);
                         _logger.LogError(xfile.ZTName + "   " + err.Message + " " + DateTime.Now);
                     }
                 }

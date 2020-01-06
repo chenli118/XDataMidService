@@ -147,16 +147,21 @@ namespace XDataMidService.BPImp
                 return response;
             }
             response.HttpStatusCode = 200;
-            response.ResultContext = "SUCCESS : 导入数据成功";
+            response.ResultContext = " 已生成中间数据！";
             return response;
         }
 
         private bool UpdateTBDetailAndTBAux()
         {
-            string sql =  " select ROW_NUMBER() OVER(ORDER BY accountcode) AS ID, accountcode, fscode, kmsx, yefx  into #auxfscode	from	dbo.TbDetail with(nolock) where	auxiliarycode='' and	datatype=0 and	isaux=0	 " +
-                " MERGE DBO.TBAux AS AUX USING 	#auxfscode AS d ON AUX.ACCOUNTCODE COLLATE Chinese_PRC_CS_AS_KS_WS = d.ACCOUNTCODE  COLLATE Chinese_PRC_CS_AS_KS_WS" +
-                " WHEN MATCHED THEN UPDATE SET aux.fscode = d.fscode,aux.KMSX = d.kmsx,aux.yefx = d.yefx; drop table #auxfscode ";
-           return SqlMapperUtil.CMDExcute(sql, null, conStr)>0;
+            try
+            {
+                string sql = " ;with s1 as(select ROW_NUMBER() OVER(ORDER BY accountcode) AS ID, accountcode, fscode, kmsx, yefx   from dbo.TbDetail with(nolock) where auxiliarycode = '' and datatype = 0 and isaux = 0)" +
+                    " MERGE DBO.TBAux AS AUX USING s1 AS d ON AUX.ACCOUNTCODE COLLATE Chinese_PRC_CS_AS_KS_WS = d.ACCOUNTCODE  COLLATE Chinese_PRC_CS_AS_KS_WS " +
+                    " WHEN MATCHED THEN UPDATE SET aux.fscode = d.fscode,aux.KMSX = d.kmsx,aux.yefx = d.yefx; ";
+                SqlMapperUtil.CMDExcute(sql, null, conStr);
+                return true;
+                    } catch
+            { return false; }
         }
 
         private bool UpdateTBDetailTBAuxMny()
@@ -488,7 +493,7 @@ namespace XDataMidService.BPImp
                     jzpzSQL= jzpzSQL.Replace(fdid,"");
                 }
                 SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
-                string expzk = " select 	Pzk_TableName	from	pzk	where	Pzk_TableName!='jzpz' and Pzk_TableName like 'jzpz%' ";
+                string expzk = " select 	Pzk_TableName	from	pzk	where	Pzk_TableName!='Jzpz' and Pzk_TableName like 'Jzpz%' ";
                 dynamic ds = SqlMapperUtil.SqlWithParams<dynamic>(expzk, null, conStr);
                 string pzkname = "jzpz";
                 foreach (var d in ds)
@@ -669,8 +674,8 @@ namespace XDataMidService.BPImp
                     IsAux = false;
                     return true;
                 }
-                string projectsql = " truncate table PROJECT  ; INSERT  PROJECT   SELECT Distinct '" + xfile.ProjectID + "', LEFT(XMDM, CHARINDEX('.', XMDM)),XMDM,isnull(XMMC,space(0)),NULL,XMJB,XMMX     FROM XM " +
-                    " ; update PROJECT set ProjectCode=LTRIM(rtrim(ProjectCode)),TypeCode=LTRIM(rtrim(TypeCode))  ";
+                string projectsql = " truncate table PROJECT  ; insert into  project(projectid,typecode,projectcode,projectname,uppercode,jb,ismx) " +
+                    "   SELECT '' as projectid, LTRIM(LEFT(XMDM, CHARINDEX('.', XMDM))) as TypeCode ,LTRIM(rtrim((XMDM))) as ProjectCode,isnull(XMMC, space(0)) as ProjectName,NULL as uppercode,XMJB as jb,XMMX as ismx    FROM XM;                ";
                 SqlMapperUtil.CMDExcute(projectsql, null, conStr);
 
                 //string mxjb = " select MAX(JB) from [ProJect]";
@@ -690,8 +695,13 @@ namespace XDataMidService.BPImp
                 //        SqlMapperUtil.CMDExcute(jbsql, null, conStr);
                 //    }
                 //}
-
-
+                sql = "select 1  from sysobjects  where id = object_id('t_itemclass')    and type = 'U'";
+                pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                if (pzqj != 1)
+                {
+                    IsAux = false;
+                    return true;
+                }
                 string projecttypesql = " truncate table ProjectType  ; INSERT  ProjectType  SELECT   '" + xfile.ProjectID + "', FITEMID,FName FROM t_itemclass" +
                     " ; update  PROJECTTYPE set TypeCode=LTRIM(rtrim(TypeCode))   ";
                 SqlMapperUtil.CMDExcute(projecttypesql, null, conStr);

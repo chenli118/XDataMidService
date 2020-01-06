@@ -17,7 +17,7 @@ namespace XDataMidService.BPImp
         {
             connectString = StaticUtil.GetConfigValueByKey("XDataConn");
             string dbname = StaticUtil.GetLocalDbNameByXFile(xfile);
-            string sql = " drop database [" + dbname + "]";
+            string sql = "  exec dropdb '"+ dbname + "'";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try
@@ -70,7 +70,25 @@ namespace XDataMidService.BPImp
                     throw err;
                 }
             }
-        } 
-         
+        }
+        public static void DeleteXdataByID(Models.xfile xfile)
+        {
+            connectString = StaticUtil.GetConfigValueByKey("XDataConn");
+            string sql = "delete from  XData.dbo.[XFiles] where xid="+xfile.XID;
+            using (SqlConnection conn = new SqlConnection(connectString))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception err)
+                {
+                    throw err;
+                }
+            }
+        }
+
     }
 }

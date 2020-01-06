@@ -115,8 +115,18 @@ namespace XDataMidService.BPImp
                 var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
                 if (!string.IsNullOrWhiteSpace(errmsg))
                 {
-                    response.ResultContext = xfile.XID + "  "+ errmsg + "！ ";
+                    response.ResultContext = xfile.XID + "  " + errmsg + "！ ";
                 }
+                else
+                {
+                    qdb = "select xgroup from xdata.dbo.repeatdb where xid =" + xfile.XID;
+                    var  xgroup = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
+                    if (!string.IsNullOrWhiteSpace(xgroup))
+                    {
+                        response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
+                    }
+                }
+
                 _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
                 StaticData.X2EasList[key] = "";
                 return response;
@@ -200,9 +210,9 @@ namespace XDataMidService.BPImp
                 var ret = dapper.ExecuteTransactionAndDBSigleUser(sqlarr);
                 if (ret.Item1 > 0)
                 {
-                    dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =1,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
+                    dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =999,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
                     response.HttpStatusCode = 200;
-                    response.ResultContext = string.Format("{0}项目数据{1}导入EAS成功", xfile.ProjectID, localDbName);
+                    response.ResultContext = string.Format("项目{0}已导入EAS", xfile.ProjectID, localDbName);
                     _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
                     StaticData.X2EasList[key] = "";
                     return response;
