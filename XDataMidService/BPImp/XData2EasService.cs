@@ -23,13 +23,13 @@ namespace XDataMidService.BPImp
             {
                 _stack.Add(value);
                 if (_timer == null)
-                { 
+                {
                     _timer = new System.Timers.Timer(10000);
                     _timer.Elapsed += _timer_Elapsed; ;
                     _timer.AutoReset = true;
                     _timer.Enabled = true;
                     _timer.Start();
-                }               
+                }
             }
         }
 
@@ -105,37 +105,43 @@ namespace XDataMidService.BPImp
             StaticData.X2EasList[key] = localDbName;
             var dapper = DapperHelper<xfile>.Create("XDataConn");
             _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
-            string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID ;
+            string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID;
             var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+            var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
+            string linkSvrName = tbv.Item1;
+            string dbName = tbv.Item2;
             if (thisdb != 1)
             {
-                response.ResultContext = xfile.XID + ": 数据没有准备！ ";
-                response.HttpStatusCode = 500;
+
                 qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
                 var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
                 if (!string.IsNullOrWhiteSpace(errmsg))
                 {
                     response.ResultContext = xfile.XID + "  " + errmsg + "！ ";
                 }
-                else
+                qdb = "select xgroup from xdata.dbo.repeatdb where xid =" + xfile.XID;
+                var xgroup = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
+                if (!string.IsNullOrWhiteSpace(xgroup))
                 {
-                    qdb = "select xgroup from xdata.dbo.repeatdb where xid =" + xfile.XID;
-                    var  xgroup = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
-                    if (!string.IsNullOrWhiteSpace(xgroup))
+                    response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
+                }
+                if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
+                {
+                    qdb = " select max(xid) from  " + linkSvrName + ".XDB.dbo.XFiles ";
+                    var maxxid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+                    if (maxxid > 0)
                     {
-                        response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
+                        response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
+                        response.HttpStatusCode = 500;
                     }
                 }
-
                 _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
                 StaticData.X2EasList[key] = "";
                 return response;
             }
             dapper.conStr = constr.Replace("master", localDbName);
             string projectID = xfile.ProjectID;
-            var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
-            string linkSvrName = tbv.Item1;
-            string dbName = tbv.Item2;
+
             if (!string.IsNullOrEmpty(linkSvrName))
             {
                 linkSvrName = "[" + linkSvrName + "]";
