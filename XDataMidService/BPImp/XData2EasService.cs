@@ -82,160 +82,172 @@ namespace XDataMidService.BPImp
         public XDataResponse Real2EasImp(xfile xfile)
         {
             XDataResponse response = new XDataResponse();
-            string constr = StaticUtil.GetConfigValueByKey("XDataConn");
-            string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
-            string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
-            if (StaticData.X2SqlList.ContainsKey(key) && StaticData.X2SqlList[key] == 1)
+            try
             {
-                response.ResultContext = localDbName + " 数据正在准备中！ ";
-                response.HttpStatusCode = 500;
-                return response;
-            }
-
-            if (!StaticData.X2EasList.ContainsKey(key))
-            {
-                StaticData.X2EasList.Add(key, localDbName);
-            }
-            else if (StaticData.X2EasList[key] == localDbName)
-            {
-                response.ResultContext = key + " 已经在执行过程中...";
-                StaticData.X2EasList[key] = "";
-                return response;
-            }
-            StaticData.X2EasList[key] = localDbName;
-            var dapper = DapperHelper<xfile>.Create("XDataConn");
-            _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
-            string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID;
-            var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
-            var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
-            string linkSvrName = tbv.Item1;
-            string dbName = tbv.Item2;
-            if (thisdb != 1)
-            {
-
-                qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
-                var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
-                if (!string.IsNullOrWhiteSpace(errmsg))
+                string constr = StaticUtil.GetConfigValueByKey("XDataConn");
+                string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
+                string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
+                if (StaticData.X2SqlList.ContainsKey(key) && StaticData.X2SqlList[key] == 1)
                 {
-                    response.ResultContext = xfile.XID + "  " + errmsg + "！ ";
+                    response.ResultContext = localDbName + " 数据正在准备中！ ";
+                    response.HttpStatusCode = 500;
+                    return response;
                 }
-                qdb = "select xgroup from xdata.dbo.repeatdb where xid =" + xfile.XID;
-                var xgroup = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
-                if (!string.IsNullOrWhiteSpace(xgroup))
+
+                if (!StaticData.X2EasList.ContainsKey(key))
                 {
-                    response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
+                    StaticData.X2EasList.Add(key, localDbName);
                 }
-                if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
+                else if (StaticData.X2EasList[key] == localDbName)
                 {
-                    qdb = " select max(xid) from  " + linkSvrName + ".XDB.dbo.XFiles ";
-                    var maxxid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
-                    if (maxxid > 0)
+                    response.ResultContext = key + " 已经在执行过程中...";
+                    StaticData.X2EasList[key] = "";
+                    return response;
+                }
+                StaticData.X2EasList[key] = localDbName;
+                var dapper = DapperHelper<xfile>.Create("XDataConn");
+                _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
+                string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID;
+                var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+                var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
+                string linkSvrName = tbv.Item1;
+                string dbName = tbv.Item2;
+                if (thisdb != 1)
+                {
+
+                    qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
+                    var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
+                    if (!string.IsNullOrWhiteSpace(errmsg))
                     {
-                        response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
-                        response.HttpStatusCode = 500;
+                        response.ResultContext = xfile.XID + "  " + errmsg + "！ ";
                     }
-                }
-                _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
-                StaticData.X2EasList[key] = "";
-                return response;
-            }
-            dapper.conStr = constr.Replace("master", localDbName);
-            string projectID = xfile.ProjectID;
-
-            if (!string.IsNullOrEmpty(linkSvrName))
-            {
-                linkSvrName = "[" + linkSvrName + "]";
-                localDbName = "[" + localDbName + "]";
-                StringBuilder sb = new StringBuilder();
-                sb.Append(" SET XACT_ABORT ON   go ");
-
-                if (xfile.periodType == 0)
-                {
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[kjqj] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.kjqj ([ProjectID],[KJDate]) select '{0}' as ProjectID,[KJDate] from {3}.dbo.[kjqj] ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProjectType] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProjectType](ProjectID,TYPECODE,TYPENAME) select '{0}' as ProjectID,TYPECODE,TYPENAME from {3}.dbo.[ProjectType] ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProJect] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProJect](ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX) select '{0}' as ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX from {3}.dbo.[ProJect] ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.ACCOUNT where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[ACCOUNT](ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz) select '{0}' as ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz from {3}.dbo.ACCOUNT ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-                    //sb.AppendFormat(" select hashcode into #hc from {1}.{2}.dbo.TBVoucher t where t.projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    //sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' and hashcode not in(select hashcode from #hc) ", projectID, linkSvrName, dbName);
-                    //sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}'  ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) " +
-                        " select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
-                        " from  {3}.dbo.TBVoucher where Date<='" + xfile.periodEndDate + "'", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear from {3}.dbo. AuxiliaryFDetail ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBAux] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBAux](ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye) select '{0}' as ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye from {3}.dbo.[TBAux] ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBDetail] (ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2]) select  '{0}' as ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2] from {3}.dbo.[TBDetail] ", projectID, linkSvrName, dbName, localDbName);
-                }
-
-                else if (xfile.periodType == 1)
-                {
-                    sb.AppendFormat(" select hashcode into #h1 from {1}.{2}.dbo.qhjzpz t where t.projectid ='{0}'", projectID, linkSvrName, dbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" insert into {1}.{2}.dbo.qhjzpz ( HashCode,ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
-                        " select HashCode,'" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
-                        " from TBVoucher a where a.hashcode not in ( select hashcode from #h1) ", projectID, linkSvrName, dbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode  into #f2 from {1}.{2}.dbo.AuxiliaryFDetail  z  where z.projectid ='{0}'", projectID, linkSvrName, dbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid," + xfile.periodType + " as datatype,datayear " +
-                       " from {3}.dbo. AuxiliaryFDetail f where f.hashcode not in (select hashcode from #f2) ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-
-                }
-                else if (xfile.periodType == -1)
-                {
-                    sb.AppendFormat(" select hashcode into #h2 from {1}.{2}.dbo.Qcwljzpz t where t.projectid ='{0}'", projectID, linkSvrName, dbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" insert into {1}.{2}.dbo.Qcwljzpz ( HashCode,ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
-                         " select HashCode,'" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
-                         " from TBVoucher a where a.hashcode not in ( select hashcode from  #h2 ) ", projectID, linkSvrName, dbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode  into #f1 from {1}.{2}.dbo.AuxiliaryFDetail  z  where z.projectid ='{0}'", projectID, linkSvrName, dbName);
-                    sb.Append(" go ");
-                    sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid," + xfile.periodType + " as datatype,datayear " +
-                       " from {3}.dbo. AuxiliaryFDetail f where f.hashcode not in (select hashcode from #f1) ", projectID, linkSvrName, dbName, localDbName);
-                    sb.Append(" go ");
-
-
-                }
-                string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);
-                var ret = dapper.ExecuteTransactionAndDBSigleUser(sqlarr);
-                if (ret.Item1 > 0)
-                {
-                    dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =999,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
-                    response.HttpStatusCode = 200;
-                    response.ResultContext = string.Format("项目{0}已导入EAS", xfile.ProjectID, localDbName);
+                    qdb = "select xgroup from xdata.dbo.repeatdb where xid =" + xfile.XID;
+                    var xgroup = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
+                    if (!string.IsNullOrWhiteSpace(xgroup))
+                    {
+                        response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
+                    }
+                    if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
+                    {
+                        qdb = " select max(xid) from  " + linkSvrName + ".XDB.dbo.XFiles ";
+                        var maxxid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+                        if (maxxid > 0)
+                        {
+                            response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
+                            response.HttpStatusCode = 500;
+                        }
+                    }
                     _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
                     StaticData.X2EasList[key] = "";
                     return response;
-
                 }
-                else
+                dapper.conStr = constr.Replace("master", localDbName);
+                string projectID = xfile.ProjectID;
+
+                if (!string.IsNullOrEmpty(linkSvrName))
                 {
-                    response.ResultContext += ret.Item2;
-                }
+                    linkSvrName = "[" + linkSvrName + "]";
+                    localDbName = "[" + localDbName + "]";
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append(" SET XACT_ABORT ON   go ");
 
+                    if (xfile.periodType == 0)
+                    {
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.[kjqj] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.kjqj ([ProjectID],[KJDate]) select '{0}' as ProjectID,[KJDate] from {3}.dbo.[kjqj] ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProjectType] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProjectType](ProjectID,TYPECODE,TYPENAME) select '{0}' as ProjectID,TYPECODE,TYPENAME from {3}.dbo.[ProjectType] ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.[ProJect] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[ProJect](ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX) select '{0}' as ProjectID,TYPECODE,PROJECTCODE,PROJECTNAME,UPPERCODE,JB,ISMX from {3}.dbo.[ProJect] ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.ACCOUNT where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[ACCOUNT](ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz) select '{0}' as ProjectID,AccountCode,UpperCode,AccountName,Attribute,Jd,Hsxms,TypeCode,Jb,IsMx,Ncye,Qqccgz,Jfje,Dfje,Ncsl,Syjz from {3}.dbo.ACCOUNT ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+                        //sb.AppendFormat(" select hashcode into #hc from {1}.{2}.dbo.TBVoucher t where t.projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        //sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}' and hashcode not in(select hashcode from #hc) ", projectID, linkSvrName, dbName);
+                        //sb.Append(" go ");
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}'  ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) " +
+                            " select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
+                            " from  {3}.dbo.TBVoucher where Date<='" + xfile.periodEndDate + "'", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear from {3}.dbo. AuxiliaryFDetail ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBAux] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBAux](ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye) select '{0}' as ProjectID,AccountCode,AuxiliaryCode,AuxiliaryName,FSCode,kmsx,YEFX,TBGrouping,Sqqmye,Qqccgz,jfje,dfje,qmye from {3}.dbo.[TBAux] ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBDetail] (ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2]) select  '{0}' as ProjectID,[ID],[FSCode],[AccountCode],[AuxiliaryCode],[AccAuxName],[DataType],[TBGrouping],[TBType],[IsAccMx],[IsMx],[IsAux],[kmsx],[Yefx],[SourceFSCode],[Sqqmye],[Qqccgz],[jfje],[dfje],[CrjeJF],[CrjeDF] ,[AjeJF] ,[AjeDF],[RjeJF],[RjeDF],[TaxBase],[PY1],[jfje1],[dfje1],[jfje2],[dfje2] from {3}.dbo.[TBDetail] ", projectID, linkSvrName, dbName, localDbName);
+                    }
+
+                    else if (xfile.periodType == 1)
+                    {
+                        sb.AppendFormat(" select hashcode into #h1 from {1}.{2}.dbo.qhjzpz t where t.projectid ='{0}'", projectID, linkSvrName, dbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" insert into {1}.{2}.dbo.qhjzpz ( HashCode,ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
+                            " select HashCode,'" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
+                            " from TBVoucher a where a.hashcode not in ( select hashcode from #h1) ", projectID, linkSvrName, dbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode  into #f2 from {1}.{2}.dbo.AuxiliaryFDetail  z  where z.projectid ='{0}'", projectID, linkSvrName, dbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid," + xfile.periodType + " as datatype,datayear " +
+                           " from {3}.dbo. AuxiliaryFDetail f where f.hashcode not in (select hashcode from #f2) ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+
+                    }
+                    else if (xfile.periodType == -1)
+                    {
+                        sb.AppendFormat(" select hashcode into #h2 from {1}.{2}.dbo.Qcwljzpz t where t.projectid ='{0}'", projectID, linkSvrName, dbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" insert into {1}.{2}.dbo.Qcwljzpz ( HashCode,ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
+                             " select HashCode,'" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
+                             " from TBVoucher a where a.hashcode not in ( select hashcode from  #h2 ) ", projectID, linkSvrName, dbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode  into #f1 from {1}.{2}.dbo.AuxiliaryFDetail  z  where z.projectid ='{0}'", projectID, linkSvrName, dbName);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid," + xfile.periodType + " as datatype,datayear " +
+                           " from {3}.dbo. AuxiliaryFDetail f where f.hashcode not in (select hashcode from #f1) ", projectID, linkSvrName, dbName, localDbName);
+                        sb.Append(" go ");
+
+
+                    }
+                    string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);
+                    var ret = dapper.ExecuteTransactionAndDBSigleUser(sqlarr);
+                    if (ret.Item1 > 0)
+                    {
+                        dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =999,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
+                        response.HttpStatusCode = 200;
+                        response.ResultContext = string.Format("项目{0}已导入EAS", xfile.ProjectID, localDbName);
+                        _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
+                        StaticData.X2EasList[key] = "";
+                        return response;
+
+                    }
+                    else
+                    {
+                        response.ResultContext += ret.Item2;
+                    }
+
+                }
+                dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =2,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
+                response.HttpStatusCode = 500;
+                response.ResultContext = string.Format("{0}项目导入EAS失败,因为：{1}", xfile.ProjectID, response.ResultContext);
+                _logger.LogError(response.ResultContext + " " + DateTime.Now);
+                StaticData.X2EasList[key] = "";
+                return response;
             }
-            dapper.Execute(string.Format(" update  xdata.dbo.XFiles set datastatus =2,projectid='{1}' where xid={0} ", xfile.XID, projectID), null);
-            response.HttpStatusCode = 500;
-            response.ResultContext = string.Format("{0}项目导入EAS失败,因为：{1}", xfile.ProjectID, response.ResultContext);
-            _logger.LogError(response.ResultContext + " " + DateTime.Now);
-            StaticData.X2EasList[key] = "";
-            return response;
+            catch (Exception et)
+            {
+               
+                response.HttpStatusCode = 500;
+                response.ResultContext = string.Format("文件{0} 项目{1}导入EAS失败,请联系系统管理员！",xfile.XID, xfile.ProjectID);
+                _logger.LogError(response.ResultContext + " 异常：" +et.Message+ " " + DateTime.Now);
+                 
+                return response;
+            }
         }
 
 

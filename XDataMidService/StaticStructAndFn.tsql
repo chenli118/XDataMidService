@@ -375,32 +375,26 @@ AS
 begin try	
 SET NOCOUNT ON
 SET XACT_ABORT ON
-truncate table tbdetail
-declare @tempTable1 table 
-(
-	id int identity(1,1),
-    AccountCode  varchar(255) collate Chinese_PRC_CS_AS_KS_WS,
-    AccountName varchar(255),
-    Fs  varchar(255),
-    FsCode varchar(255) collate Chinese_PRC_CS_AS_KS_WS,
-    Yefx int,
-	Kmsx int
-)insert into @tempTable1
+truncate table tbdetail 
+
+;with s1 as(
 select distinct C.Accountcode,C.AccountName,G.FsName,G.FsCode,G.Yefx,G.kmsx from dbo.TBFS G with(nolock)
+
 inner join dbo.account C with(nolock) on (C.AccountName = G.FsName)  
-where (C.Jb=1) and G.ismx=1 
-insert into @tempTable1
-select distinct C.AccountCode,C.AccountName,F.Fs,G.FsCode,G.Yefx,G.Kmsx
-From dbo.account C with(nolock),	EASKmdzb F with(nolock) ,	dbo.TBFS G with(nolock)
-where   	  (C.AccountName = F.Note) 
- and (F.Fs=G.FsName) and (C.jb=1) and G.ismx=1
- and C.AccountName not in (select AccountName from @tempTable1) 
+
+where (C.Jb=1) and G.ismx=1 )
+
+, s2 as( select distinct C.AccountCode,C.AccountName,F.Fs,G.FsCode,G.Yefx,G.Kmsx From dbo.account C with(nolock),	EASKmdzb F with(nolock) ,	dbo.TBFS G with(nolock)
+
+where   	  (C.AccountName = F.Note)  and (F.Fs=G.FsName) and (C.jb=1) and G.ismx=1  and C.AccountName not in (select AccountName from s1) )
+
  select distinct NEWID() IID ,DB_NAME() AS projectid,a.AccountCode,space(0) AS AuxiliaryCode,space(0) AS SourceFSCode,
- a.AccountName as AccAuxName,a.jb as TBType,0 AS IsMx,isnull(a.UpperCode,isnull(b.fscode,space(0))) TBGrouping,a.Ncye AS Sqqmye,
-isnull(b.FsCode,space(0))fscode,isnull(b.yefx,1)yefx,isnull(b.kmsx,0)kmsx,0 AS isAux,a.ismx AS isAccMx,0 AS DataType
-into #p1  from dbo.Account	a with(nolock)
-left	join	@tempTable1	b
-on left(a.accountcode,len(b.accountcode)) collate Chinese_PRC_CS_AS_KS_WS=b.AccountCode collate Chinese_PRC_CS_AS_KS_WS  
+
+ a.AccountName as AccAuxName,a.jb as TBType,a.IsMx AS IsMx,isnull(a.UpperCode,isnull(b.fscode,space(0))) TBGrouping,a.Ncye AS Sqqmye,
+
+isnull(b.FsCode,space(0))fscode,isnull(b.yefx,1)yefx,isnull(b.kmsx,0)kmsx,0 AS isAux,a.ismx AS isAccMx,0 AS DataType 
+into #p1
+ from dbo.Account	a with(nolock) left	join s2	b on left(a.accountcode,len(b.accountcode)) collate Chinese_PRC_CS_AS_KS_WS=b.AccountCode collate Chinese_PRC_CS_AS_KS_WS  
 alter table #p1 add ID int IDENTITY(1,1)
 declare @leve int=1000
 declare @ix int=1

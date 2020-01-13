@@ -23,6 +23,7 @@ namespace XDataBG
         private static object obj_lock = new object();
         static void Main(string[] args)
         {
+            logfile = logfile.Replace("log.", Guid.NewGuid() + ".");
             //bool bCreate = true;
             //Mutex mt = new Mutex(false, "XDataBG", out bCreate);
             //if (bCreate)
@@ -260,8 +261,9 @@ namespace XDataBG
             var whereas = ConnectionString("Whereas");
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
             string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  [" + linkSvr + "].XDB.dbo.XFiles where xid not in" +
-                " (select xid from  XData.dbo.[XFiles]) and ZTYear>2014 and xid not in(select xid from  XData.dbo.[badfiles])" +
+                " (select xid from  XData.dbo.[XFiles]) and ZTYear >2014    and xid not in(select xid from  XData.dbo.[badfiles])" +
                 " and xid not in(select xid from  XData.dbo.[repeatdb])" +
+                " and GETDATE()- UploadTime<10 "+
                 " and  CustomID in ( select nmclientid from  [" + linkSvr + "].neweasv5.[dbo].[ClientBasicInfo])" +
                 " and  " + whereas + "   order by xid  ";
             using (SqlConnection conn = new SqlConnection(connectString))
