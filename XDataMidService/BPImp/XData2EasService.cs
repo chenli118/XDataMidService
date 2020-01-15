@@ -82,68 +82,23 @@ namespace XDataMidService.BPImp
         public XDataResponse Real2EasImp(xfile xfile)
         {
             XDataResponse response = new XDataResponse();
+            string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
             try
             {
                 string constr = StaticUtil.GetConfigValueByKey("XDataConn");
                 string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
-                string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
-                if (StaticData.X2SqlList.ContainsKey(key) && StaticData.X2SqlList[key] == 1)
-                {
-                    response.ResultContext = localDbName + " 数据正在准备中！ ";
-                    response.HttpStatusCode = 500;
-                    return response;
-                }
-
-                if (!StaticData.X2EasList.ContainsKey(key))
-                {
+                if (StaticData.X2EasList.ContainsKey(key))
+                    StaticData.X2EasList[key] = localDbName;
+                else
                     StaticData.X2EasList.Add(key, localDbName);
-                }
-                else if (StaticData.X2EasList[key] == localDbName)
-                {
-                    response.ResultContext = key + " 已经在执行过程中...";
-                    StaticData.X2EasList[key] = "";
-                    return response;
-                }
-                StaticData.X2EasList[key] = localDbName;
                 var dapper = DapperHelper<xfile>.Create("XDataConn");
                 _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
-                string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID;
-                var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+
+                dapper.conStr = constr.Replace("master", localDbName);
+                string projectID = xfile.ProjectID;
                 var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
                 string linkSvrName = tbv.Item1;
                 string dbName = tbv.Item2;
-                if (thisdb != 1)
-                {
-
-                    qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
-                    var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
-                    if (!string.IsNullOrWhiteSpace(errmsg))
-                    {
-                        response.ResultContext = xfile.XID + "  " + errmsg + "！ ";
-                    }
-                    qdb = "select xgroup from xdata.dbo.repeatdb where xid =" + xfile.XID;
-                    var xgroup = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
-                    if (!string.IsNullOrWhiteSpace(xgroup))
-                    {
-                        response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
-                    }
-                    if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
-                    {
-                        qdb = " select max(xid) from  " + linkSvrName + ".XDB.dbo.XFiles ";
-                        var maxxid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
-                        if (maxxid > 0)
-                        {
-                            response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
-                            response.HttpStatusCode = 500;
-                        }
-                    }
-                    _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
-                    StaticData.X2EasList[key] = "";
-                    return response;
-                }
-                dapper.conStr = constr.Replace("master", localDbName);
-                string projectID = xfile.ProjectID;
-
                 if (!string.IsNullOrEmpty(linkSvrName))
                 {
                     linkSvrName = "[" + linkSvrName + "]";
@@ -222,7 +177,7 @@ namespace XDataMidService.BPImp
                         response.HttpStatusCode = 200;
                         response.ResultContext = string.Format("项目{0}已导入EAS", xfile.ProjectID, localDbName);
                         _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
-                        StaticData.X2EasList[key] = "";
+
                         return response;
 
                     }
@@ -236,17 +191,21 @@ namespace XDataMidService.BPImp
                 response.HttpStatusCode = 500;
                 response.ResultContext = string.Format("{0}项目导入EAS失败,因为：{1}", xfile.ProjectID, response.ResultContext);
                 _logger.LogError(response.ResultContext + " " + DateTime.Now);
-                StaticData.X2EasList[key] = "";
+
                 return response;
             }
             catch (Exception et)
             {
-               
+
                 response.HttpStatusCode = 500;
-                response.ResultContext = string.Format("文件{0} 项目{1}导入EAS失败,请联系系统管理员！",xfile.XID, xfile.ProjectID);
-                _logger.LogError(response.ResultContext + " 异常：" +et.Message+ " " + DateTime.Now);
-                 
+                response.ResultContext = string.Format("文件{0} 项目{1}导入EAS失败,请联系系统管理员！", xfile.XID, xfile.ProjectID);
+                _logger.LogError(response.ResultContext + " 异常：" + et.Message + " " + DateTime.Now);
+
                 return response;
+            }
+            finally
+            {
+                StaticData.X2EasList[key] = "";
             }
         }
 
