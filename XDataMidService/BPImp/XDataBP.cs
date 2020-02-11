@@ -17,7 +17,7 @@ namespace XDataMidService.BPImp
         {
             connectString = StaticUtil.GetConfigValueByKey("XDataConn");
             string dbname = StaticUtil.GetLocalDbNameByXFile(xfile);
-            string sql = "  exec dropdb '"+ dbname + "'";
+            string sql = " if exists(select 1 from sys.databases where name = '"+ dbname + "') begin exec dropdb '"+ dbname + "' end";
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try

@@ -160,44 +160,46 @@ namespace XDataBG
                 {
                     ParallelOptions parallelOptions = new ParallelOptions();
                     parallelOptions.MaxDegreeOfParallelism = 2;
-                    Parallel.ForEach(customDb, parallelOptions, (c, loopstate) =>
-                     {
-                      
-                             DataRow dr = c.Value[0];
-                             xfile xfile = new xfile();
-                             xfile.wp_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
-                             xfile.fileName = dr["FileName"].ToString();
-                             xfile.customName = dr["CustomName"].ToString();
-                             xfile.ztName = dr["ZTName"].ToString();
-                             xfile.xID = Convert.ToInt32(dr["XID"]);
-                             if (ExistsXID(xfile.xID)) return;
-                             xfile.customID = dr["CustomID"].ToString();
-                             xfile.ztid = dr["ZTID"].ToString();
-                             xfile.ztYear = dr["ZTYear"].ToString();
-                             xfile.pzBeginDate = dr["PZBeginDate"].ToString();
-                             xfile.pzEndDate = dr["PZEndDate"].ToString();
-                             var pjson = JsonSerializer.Serialize(xfile);
-                             Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
-                             Tuple<int, string> ret = null;
-                             if (xfile.xID % 2 == 0)
-                             {
-                                 ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2SQL", pjson);
-                             }
-                             else
-                             {
-                                 ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2SQL", pjson);
-                             }
-                             Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
-                             if (ret.Item1 == 1)
-                             {
-                                 Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
-                             }
-                             else
-                             {
-                                 Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Fail !" + DateTime.Now);
-                             }
-                         
-                     });
+                    _ = Parallel.ForEach(customDb, parallelOptions, (c, loopstate) =>
+                       {
+
+                           DataRow dr = c.Value[0];
+                           xfile xfile = new xfile();
+                           xfile.wp_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
+                           xfile.fileName = dr["FileName"].ToString();
+                           xfile.customName = dr["CustomName"].ToString();
+                           xfile.ztName = dr["ZTName"].ToString();
+                           xfile.xID = Convert.ToInt32(dr["XID"]);
+                           if (ExistsXID(xfile.xID)) return;
+                           xfile.customID = dr["CustomID"].ToString();
+                           xfile.ztid = dr["ZTID"].ToString();
+                           xfile.ztYear = dr["ZTYear"].ToString();
+                           xfile.pzBeginDate = dr["PZBeginDate"].ToString();
+                           xfile.pzEndDate = dr["PZEndDate"].ToString();
+                           var pjson = JsonSerializer.Serialize(xfile);
+                           Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
+                           Tuple<int, string> ret = null;
+                           if (xfile.xID % 2 == 0)
+                           {
+                               ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2SQL", pjson);
+                           }
+                           else
+                           {
+                               ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2SQL", pjson);
+                           }
+                           Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
+                           if (ret.Item1 == 1)
+                           {
+                               Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
+                           }
+                           else
+                           {
+                               string sql = " delete from xdata..badfiles   where errmsg like '%登录失%'";
+                               ExecuteSql(sql);
+                               Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Fail !" + DateTime.Now);
+                           }
+
+                       });
                 }
 
             }
@@ -211,6 +213,25 @@ namespace XDataBG
             }
 
 
+        }
+        private static int ExecuteSql(string  sql)
+        {
+            connectString = ConnectionString("XDataConn");             
+            using (SqlConnection conn = new SqlConnection(connectString))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                   return cmd.ExecuteNonQuery(); 
+
+                }
+                catch (Exception err)
+                {
+                    WriteLog(logfile, DateTime.Now + " : " + err.Message);
+                    return -1;
+                } 
+            }
         }
         private static bool ExistsXID(int xid)
         {
@@ -235,6 +256,30 @@ namespace XDataBG
             }
         }
 
+        private static DataTable GetXfiles(string sql)
+        {
+            connectString = ConnectionString("XDataConn");
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectString))
+            {
+                try
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    IDataReader reader = cmd.ExecuteReader();
+                    dt.Load(reader);
+                    reader.Close();
+
+                }
+                catch (Exception err)
+                {
+                     
+                }
+               
+            }
+            return dt;
+        }
+
         private static string ConnectionString(string key)
         {
             string jsonTxt = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "WebApp.Config.json"));
@@ -257,13 +302,17 @@ namespace XDataBG
         }
         private static void LoadQueue()
         {
+            DataTable xfiles = GetXfiles("select max(xid) xid from  XData.dbo.[XFiles]  ");
+            int maxid = Convert.ToInt32(xfiles.Rows[0].ItemArray[0]);
             connectString = ConnectionString("XDataConn");
             var whereas = ConnectionString("Whereas");
+            var xFilesCache = ConnectionString("XFilesCache"); 
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
-            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from  [" + linkSvr + "].XDB.dbo.XFiles where xid not in" +
+            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from " +
+                " [" + linkSvr + "].XDB.dbo.XFiles where xid not in" +
                 " (select xid from  XData.dbo.[XFiles]) and ZTYear >2014    and xid not in(select xid from  XData.dbo.[badfiles])" +
                 " and xid not in(select xid from  XData.dbo.[repeatdb])" +
-                " and GETDATE()- UploadTime<10 "+
+                 " and xid> " + (maxid -Convert.ToInt32(xFilesCache)) +
                 " and  CustomID in ( select nmclientid from  [" + linkSvr + "].neweasv5.[dbo].[ClientBasicInfo])" +
                 " and  " + whereas + "   order by xid  ";
             using (SqlConnection conn = new SqlConnection(connectString))
@@ -324,7 +373,7 @@ namespace XDataBG
         }
         private static async void WriteLog(string path, string message)
         {
-            await Task.Run(() => { System.IO.File.AppendAllText(path, message); });
+          // await Task.Run(() => { System.IO.File.AppendAllText(path, message); });
         }
     }
     public class xfile

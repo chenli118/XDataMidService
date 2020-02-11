@@ -725,6 +725,11 @@ namespace XDataMidService.BPImp
                 string s1 = " create database [" + dbName + "]";
                 int ret = SqlMapperUtil.InsertUpdateOrDeleteSql(s1, null);
             }
+            else
+            {
+                string sql = "  exec dropdb '" + dbName + "'";
+                int ret = SqlMapperUtil.InsertUpdateOrDeleteSql(sql, null);
+            }
             conStr = conStr.Replace("master", dbName);
             var StaticStructAndFn = Path.Combine(Directory.GetCurrentDirectory(), "StaticStructAndFn.tsql");
             var sqls = File.ReadAllText(StaticStructAndFn);

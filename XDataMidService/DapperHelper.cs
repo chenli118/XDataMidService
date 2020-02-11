@@ -30,7 +30,15 @@ namespace XDataMidService
             }
             if (name != null) connectionString = connString = name; else connString = connectionString;
             var connection = new SqlConnection(connString);
-            connection.Open();
+            try
+            {
+                if (connection.State != ConnectionState.Open) connection.Open();
+            }
+            catch
+            {
+                if (connection.State != ConnectionState.Open) connection.Open();
+            }
+            if (connection.State != ConnectionState.Open) connection.Open();
             return connection;
         }
 
@@ -495,6 +503,14 @@ namespace XDataMidService
         {
             using (SqlConnection con = new SqlConnection(connectionString))
             {
+                try
+                {
+                    if (con.State != ConnectionState.Open) con.Open();
+                }
+                catch
+                {
+                    if (con.State != ConnectionState.Open) con.Open();
+                }
                 if (con.State != ConnectionState.Open) con.Open();
                 using (var transaction = con.BeginTransaction())
                 {

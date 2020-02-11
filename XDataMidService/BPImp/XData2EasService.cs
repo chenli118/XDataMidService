@@ -88,9 +88,9 @@ namespace XDataMidService.BPImp
                 string constr = StaticUtil.GetConfigValueByKey("XDataConn");
                 string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
                 if (StaticData.X2EasList.ContainsKey(key))
-                    StaticData.X2EasList[key] = localDbName;
+                    StaticData.X2EasList[key] = xfile.DbName;
                 else
-                    StaticData.X2EasList.Add(key, localDbName);
+                    StaticData.X2EasList.Add(key, xfile.DbName);
                 var dapper = DapperHelper<xfile>.Create("XDataConn");
                 _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
 

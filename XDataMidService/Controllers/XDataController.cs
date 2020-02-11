@@ -5,6 +5,8 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Http;
@@ -12,18 +14,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using XDataMidService.BPImp;
 using XDataMidService.Models;
-
+using Microsoft.Extensions.Configuration;
 namespace XDataMidService.Controllers
 {
     [Route("[controller]")]
     [ApiController]
     public class XDataController : ControllerBase
     {
-
+        private readonly IConfiguration _configuration;
         private readonly ILogger<XDataController> _logger;
-        public XDataController(ILogger<XDataController> logger)
+        public XDataController(ILogger<XDataController> logger,IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
             if (StaticData.X2EasList == null) StaticData.X2EasList = new Dictionary<string, string>();
             if (StaticData.X2SqlList == null) StaticData.X2SqlList = new Dictionary<string, int>();
         }
@@ -112,20 +115,15 @@ namespace XDataMidService.Controllers
                     response.HttpStatusCode = 500;
                     return BadRequest(response).ExecuteResultAsync(_context);
                 }               
-                if (StaticData.X2EasList.ContainsKey(key) 
-                    &&StaticData.X2EasList[key] == localDbName)
-                {
-                    response.ResultContext = key + " 已经在执行过程中...";
-
-                    return BadRequest(response).ExecuteResultAsync(_context);
-                }
+                 
                 string constr = StaticUtil.GetConfigValueByKey("XDataConn");
                 string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID;
                 var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
                 var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
                 string linkSvrName = tbv.Item1;
                 string dbName = tbv.Item2;
-                if (thisdb != 1)
+                int port = new System.Uri(_configuration.GetSection("urls").Value).Port;
+                if (thisdb != 1 && port==80)
                 {
 
                     qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
@@ -142,12 +140,49 @@ namespace XDataMidService.Controllers
                     }
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
-                        qdb = " select max(xid) from  [" + linkSvrName + "].XDB.dbo.XFiles ";
-                        var maxxid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
-                        if (maxxid > 0)
+                        qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
+                        var srcFiles = SqlServerHelper.GetTableBySql(qdb, constr);
+                        if (srcFiles.Rows.Count > 0)
                         {
-                            response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
-                            response.HttpStatusCode = 500;
+                            int maxxid = Convert.ToInt32(srcFiles.Rows[0]["XID"]);
+                            if (maxxid - xfile.XID > 5000)
+                            {
+                                DataRow dr = srcFiles.Rows.Cast<DataRow>().Where(r => r.Field<int>("XID") == xfile.XID).FirstOrDefault();
+                                if (RepostXfile2Sql(dr) == 1)
+                                {
+                                    StaticData.X2EasList[key] = "";
+                                    var pjson = JsonSerializer.Serialize(xfile);
+                                    Tuple<int, string> ret = null;
+                                    if (xfile.XID % 2 == 0)
+                                    {
+                                        ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2EAS", pjson);
+                                    }
+                                    else
+                                    {
+                                        ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2EAS", pjson);
+                                    }
+                                    if (ret.Item1 != 1)
+                                    {
+                                        response.ResultContext = xfile.XID + ": 过期数据处理失败，请联系统管理员！";
+                                        response.HttpStatusCode = 500;
+                                    }
+                                    else
+                                    {
+                                        response.HttpStatusCode = 200;                                       
+                                        return Ok(response).ExecuteResultAsync(_context);
+                                    }
+                                }
+                                else
+                                {
+                                    response.ResultContext = xfile.XID + ": 过期数据处理失败，请联系统管理员！";
+                                    response.HttpStatusCode = 500;
+                                }
+                            }
+                            else
+                            {
+                                response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
+                                response.HttpStatusCode = 500;
+                            }
                         }
                     }
                     _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
@@ -155,7 +190,7 @@ namespace XDataMidService.Controllers
                     return BadRequest(response).ExecuteResultAsync(_context);
                 }
 
-                else if (StaticData.X2EasList.ContainsValue(localDbName))
+                else if (StaticData.X2EasList.ContainsValue(xfile.DbName))
                 {
                     System.Threading.Tasks.Task.Factory.StartNew(() =>
                     {
@@ -195,7 +230,111 @@ namespace XDataMidService.Controllers
             SqlMapperUtil.CMDExcute(sql, null, constr);
             return Ok(response).ExecuteResultAsync(_context);
         }
+        private int RepostXfile2Sql(DataRow dr)
+        { 
+            xfile xfile = new xfile();
+            xfile.WP_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
+            xfile.FileName = dr["FileName"].ToString();
+            xfile.CustomName = dr["CustomName"].ToString();
+            xfile.ZTName = dr["ZTName"].ToString();
+            xfile.XID = Convert.ToInt32(dr["XID"]); 
+            xfile.CustomID = dr["CustomID"].ToString();
+            xfile.ZTID = dr["ZTID"].ToString();
+            xfile.ZTYear = dr["ZTYear"].ToString();
+            xfile.PZBeginDate = dr["PZBeginDate"].ToString();
+            xfile.PZEndDate = dr["PZEndDate"].ToString();
+            var pjson = JsonSerializer.Serialize(xfile); 
+            Tuple<int, string> ret = null;
+            if (xfile.XID % 2 == 0)
+            {
+                ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2SQL", pjson);
+            }
+            else
+            {
+                ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2SQL", pjson);
+            }
+            return ret.Item1;
+        }
+        public static Tuple<int, string> HttpHandlePost(string url, string pjson)
+        {             
+            HttpClientHandler httpHandler = new HttpClientHandler();
+            string strRet = string.Empty;
+            HttpClient httpClient = new HttpClient();
+            httpClient.Timeout = TimeSpan.FromHours(4);
+            var cts = new CancellationToken();
+            HttpContent postContent = null;
+            HttpResponseMessage response = null;
+            try
+            {
+                Uri uri = new System.Uri(url);
+                httpClient.DefaultRequestHeaders.Add("Host", uri.Host);
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "PostmanRuntime/7.17.1");
+                httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
+                httpClient.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+                httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+                httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
+                postContent = new StringContent(pjson, Encoding.UTF8, "application/json");
+                response = httpClient.PostAsync(uri, postContent, cts).Result;
+                string responseMessage = response.Content.ReadAsStringAsync().Result;
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return new Tuple<int, string>(1, "");
+                }
+                else
+                {
+                    var msg = JsonDocument.Parse(responseMessage);
+                    if (msg != null)
+                    {
+                        foreach (var c in msg.RootElement.EnumerateObject())
+                        {
+                            if (c.Name == "resultContext")
+                            {
+                                Console.WriteLine(c.Value);
+                                strRet = c.Value.ToString();
+                                
+                            }
+                        }
 
+                    }
+                    return new Tuple<int, string>(0, strRet);
+                }
+
+            }
+            catch (TaskCanceledException ex)
+            {
+                if (ex.CancellationToken == cts)
+                {
+                    strRet += ex.Message + " ";
+                    Console.WriteLine(ex.Message);
+                }
+                else
+                {
+                    strRet += ex.Message + "  超时";
+                    Console.WriteLine(strRet);
+                }
+            }
+            catch (AggregateException ex)
+            {
+                foreach (var ee in ex.InnerExceptions)
+                {
+                    strRet += ee.Message + " ";
+                    Console.WriteLine(ee.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                strRet = ex.Message;
+            }
+            finally
+            {
+               
+                if (postContent != null)
+                    postContent.Dispose();
+                if (response != null)
+                    response.Dispose();
+            }            
+            return new Tuple<int, string>(-1, strRet);
+        }
 
 
     }
