@@ -412,9 +412,21 @@ namespace XDataMidService.BPImp
                                     dr1["Accountcode"] = dm.Trim();
                                     string acode = xv.Value;
                                     dr1["AuxiliaryCode"] = acode.Trim();
-                                    dr1["Ncye"] = d.Ncye;
-                                    dr1["Jfje1"] = d.Jfje1;
-                                    dr1["Dfje1"] = d.Dfje1;
+                                    object ncye = d.Ncye;
+                                    if (!DBNull.Value.Equals(ncye) && ncye != null)
+                                        dr1["Ncye"] = d.Ncye;
+                                    else
+                                        dr1["Ncye"] = decimal.Zero;
+                                    object j1 = d.Jfje1;
+                                    if (!DBNull.Value.Equals(j1) && j1 != null)
+                                        dr1["Jfje1"] = d.Jfje1;
+                                    else
+                                        dr1["Jfje1"] = decimal.Zero;
+                                    object d1 = d.Dfje1;
+                                    if (!DBNull.Value.Equals(d1) && d1 != null)
+                                        dr1["Dfje1"] = d.Dfje1;
+                                    else
+                                        dr1["Dfje1"] = decimal.Zero;
                                     dr1["FDetailID"] = d.FDetailID;
                                     dr1["DataType"] = 0;
                                     dr1["DataYear"] = _auditYear;

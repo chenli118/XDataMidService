@@ -138,6 +138,7 @@ namespace XDataMidService.Controllers
                     {
                         response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
                     }
+                    
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
                         qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
@@ -145,7 +146,10 @@ namespace XDataMidService.Controllers
                         if (srcFiles.Rows.Count > 0)
                         {
                             int maxxid = Convert.ToInt32(srcFiles.Rows[0]["XID"]);
-                            if (maxxid - xfile.XID > 5000)
+                            qdb = "select max(xid) from xdata.dbo.xfiles ";
+                            int thexid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+                           
+                            if ( xfile.XID < thexid)
                             {
                                 DataRow dr = srcFiles.Rows.Cast<DataRow>().Where(r => r.Field<int>("XID") == xfile.XID).FirstOrDefault();
                                 if (RepostXfile2Sql(dr) == 1)
