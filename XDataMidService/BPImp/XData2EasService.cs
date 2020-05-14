@@ -87,6 +87,17 @@ namespace XDataMidService.BPImp
             {
                 string constr = StaticUtil.GetConfigValueByKey("XDataConn");
                 string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
+                string qdb = "select 1 from sys.databases where name = '" + localDbName+"'";
+                var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+                if (thisdb != 1)
+                {
+                    SqlServerHelper.ExecuteSql(" delete from xdata.dbo.xfiles where xid = "+xfile.XID, constr);
+                    response.HttpStatusCode = 500;
+                    response.ResultContext = string.Format("文件{0} 项目{1} 数据未准备好，请重试！", xfile.XID, xfile.ProjectID);
+                    _logger.LogError(response.ResultContext  +" " + DateTime.Now);
+
+                    return response;
+                }
                 if (StaticData.X2EasList.ContainsKey(key))
                     StaticData.X2EasList[key] = xfile.DbName;
                 else

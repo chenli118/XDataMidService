@@ -179,13 +179,17 @@ namespace XDataBG
                            var pjson = JsonSerializer.Serialize(xfile);
                            Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
                            Tuple<int, string> ret = null;
+                           string XData_Host = ConnectionString("XData_Host");
+                           string[] XData_Host_Port = ConnectionString("XData_Host_Port").Split(';');
+                           UriBuilder uriBuilder0 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[0]), "XData/XData2SQL");
+                           UriBuilder uriBuilder1 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[1]), "XData/XData2SQL");
                            if (xfile.xID % 2 == 0)
                            {
-                               ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2SQL", pjson);
+                               ret = HttpHandlePost(uriBuilder0.Uri.AbsoluteUri, pjson);
                            }
                            else
                            {
-                               ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2SQL", pjson);
+                               ret = HttpHandlePost(uriBuilder1.Uri.AbsoluteUri, pjson);
                            }
                            Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
                            if (ret.Item1 == 1)
@@ -273,7 +277,7 @@ namespace XDataBG
                 }
                 catch (Exception err)
                 {
-                     
+                    Console.WriteLine(err.Message);
                 }
                
             }
@@ -322,6 +326,7 @@ namespace XDataBG
                     if (conn.State != System.Data.ConnectionState.Open) conn.Open();
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     IDataReader reader = cmd.ExecuteReader();
+                    QueueTable = new DataTable();
                     QueueTable.Load(reader);
                     reader.Close();
 
@@ -371,7 +376,7 @@ namespace XDataBG
             string linkSvrName = GetLinkServer(localCon, csb.DataSource, csb.UserID, csb.Password, csb.DataSource);
             return new Tuple<string, string>(linkSvrName, csb.InitialCatalog);
         }
-        private static async void WriteLog(string path, string message)
+        private static  void WriteLog(string path, string message)
         {
           // await Task.Run(() => { System.IO.File.AppendAllText(path, message); });
         }

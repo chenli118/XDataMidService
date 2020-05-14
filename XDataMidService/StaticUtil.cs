@@ -9,11 +9,20 @@ namespace XDataMidService
 {
     public static class StaticUtil
     {
+        public static IConfigurationBuilder _xDataConfig{ get; set; }
+        public static IConfigurationBuilder  XDataConfig { get {
+                if (_xDataConfig == null)
+                {
+                    _xDataConfig = new ConfigurationBuilder().AddJsonFile("WebApp.Config.json", optional: false, reloadOnChange: true);
+                    return _xDataConfig;
+                }
+                else return _xDataConfig;
+            } 
+        }
         public static string GetConfigValueByKey(string confKey="")
         {
-            if (confKey.Length == 0) confKey = "XDataConn";
-            var builder = new ConfigurationBuilder().AddJsonFile("WebApp.Config.json", optional: false, reloadOnChange: true);
-            var configure = builder.Build();    
+            if (confKey.Length == 0) confKey = "XDataConn"; 
+            var configure = XDataConfig.Build();    
             return  configure.GetConnectionString(confKey);
         }
         public static string GetLocalDbNameByXFile(XDataMidService.Models.xfile xfile)

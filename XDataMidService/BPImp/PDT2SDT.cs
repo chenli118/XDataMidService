@@ -422,8 +422,8 @@ namespace XDataMidService.BPImp
                                         dr1["Jfje1"] = d.Jfje1;
                                     else
                                         dr1["Jfje1"] = decimal.Zero;
-                                    object d1 = d.Dfje1;
-                                    if (!DBNull.Value.Equals(d1) && d1 != null)
+                                    object df1 = d.Dfje1;
+                                    if (!DBNull.Value.Equals(df1) && df1 != null)
                                         dr1["Dfje1"] = d.Dfje1;
                                     else
                                         dr1["Dfje1"] = decimal.Zero;

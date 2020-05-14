@@ -151,23 +151,28 @@ namespace XDataMidService.Controllers
                            
                             if ( xfile.XID < thexid)
                             {
+                                _logger.LogInformation( "  开始处理缓存外数据 " + xfile.XID +" "+ DateTime.Now);
                                 DataRow dr = srcFiles.Rows.Cast<DataRow>().Where(r => r.Field<int>("XID") == xfile.XID).FirstOrDefault();
                                 if (RepostXfile2Sql(dr) == 1)
                                 {
                                     StaticData.X2EasList[key] = "";
                                     var pjson = JsonSerializer.Serialize(xfile);
                                     Tuple<int, string> ret = null;
+                                    string XData_Host = StaticUtil.GetConfigValueByKey("XData_Host"); 
+                                    string[] XData_Host_Port = StaticUtil.GetConfigValueByKey("XData_Host_Port").Split(';');
+                                    UriBuilder uriBuilder0 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[0]), "XData/XData2EAS");
+                                    UriBuilder uriBuilder1 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[1]), "XData/XData2EAS");
                                     if (xfile.XID % 2 == 0)
                                     {
-                                        ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2EAS", pjson);
+                                        ret = HttpHandlePost(uriBuilder0.Uri.AbsoluteUri, pjson);
                                     }
                                     else
                                     {
-                                        ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2EAS", pjson);
+                                        ret = HttpHandlePost(uriBuilder1.Uri.AbsoluteUri, pjson);
                                     }
                                     if (ret.Item1 != 1)
                                     {
-                                        response.ResultContext = xfile.XID + ": 过期数据处理失败，请联系统管理员！";
+                                        response.ResultContext = xfile.XID + ": 缓存外数据处理失败，请联系统管理员！";
                                         response.HttpStatusCode = 500;
                                     }
                                     else
@@ -178,7 +183,7 @@ namespace XDataMidService.Controllers
                                 }
                                 else
                                 {
-                                    response.ResultContext = xfile.XID + ": 过期数据处理失败，请联系统管理员！";
+                                    response.ResultContext = xfile.XID + ": 缓存外数据处理失败，请联系统管理员！";
                                     response.HttpStatusCode = 500;
                                 }
                             }
@@ -249,13 +254,17 @@ namespace XDataMidService.Controllers
             xfile.PZEndDate = dr["PZEndDate"].ToString();
             var pjson = JsonSerializer.Serialize(xfile); 
             Tuple<int, string> ret = null;
+            string XData_Host = StaticUtil.GetConfigValueByKey("XData_Host");
+            string[] XData_Host_Port = StaticUtil.GetConfigValueByKey("XData_Host_Port").Split(';');
+            UriBuilder uriBuilder0 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[0]), "XData/XData2SQL");
+            UriBuilder uriBuilder1 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[1]), "XData/XData2SQL");
             if (xfile.XID % 2 == 0)
             {
-                ret = HttpHandlePost("http://192.168.1.209:5002/XData/XData2SQL", pjson);
+                ret = HttpHandlePost(uriBuilder0.Uri.AbsoluteUri, pjson);
             }
             else
             {
-                ret = HttpHandlePost("http://192.168.1.209:5003/XData/XData2SQL", pjson);
+                ret = HttpHandlePost(uriBuilder1.Uri.AbsoluteUri, pjson);
             }
             return ret.Item1;
         }
