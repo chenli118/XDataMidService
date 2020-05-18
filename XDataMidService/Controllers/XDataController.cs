@@ -177,7 +177,8 @@ namespace XDataMidService.Controllers
                                     }
                                     else
                                     {
-                                        response.HttpStatusCode = 200;                                       
+                                        response.HttpStatusCode = 200;
+                                        _logger.LogInformation("  处理完成缓存外数据 " + xfile.XID + " " + DateTime.Now);
                                         return Ok(response).ExecuteResultAsync(_context);
                                     }
                                 }
