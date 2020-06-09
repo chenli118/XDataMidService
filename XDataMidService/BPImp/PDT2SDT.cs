@@ -14,6 +14,8 @@ using System.Net;
 using Microsoft.Extensions.Configuration;
 using NetDiskLibrary;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Connections;
+using System.Data.SqlClient;
 
 namespace XDataMidService.BPImp
 {
@@ -727,7 +729,7 @@ namespace XDataMidService.BPImp
         }
         private void InitDataBase(string dbName)
         {
-            conStr = StaticUtil.GetConfigValueByKey("XDataConn");
+            string conStr = StaticUtil.GetConfigValueByKey("XDataConn");
             SqlMapperUtil.GetOpenConnection(conStr);
             string exsitsDB = "select count(1) from sys.sysdatabases where name =@dbName";
             int result = SqlMapperUtil.SqlWithParamsSingle<int>(exsitsDB, new { dbName = dbName });
@@ -742,7 +744,9 @@ namespace XDataMidService.BPImp
                 string sql = "  exec dropdb '" + dbName + "'";
                 int ret = SqlMapperUtil.InsertUpdateOrDeleteSql(sql, null);
             }
-            conStr = conStr.Replace("master", dbName);
+            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(conStr);
+            csb.InitialCatalog = dbName;
+            conStr = csb.ConnectionString;
             var StaticStructAndFn = Path.Combine(Directory.GetCurrentDirectory(), "StaticStructAndFn.tsql");
             var sqls = File.ReadAllText(StaticStructAndFn);
             SqlServerHelper.ExecuteSql(sqls, conStr);

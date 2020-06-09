@@ -23,7 +23,7 @@ namespace XDataMidService.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<XDataController> _logger;
-        public XDataController(ILogger<XDataController> logger,IConfiguration configuration)
+        public XDataController(ILogger<XDataController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
@@ -98,6 +98,80 @@ namespace XDataMidService.Controllers
                     StaticData.X2SqlList.Remove(key);
             }
         }
+
+        [HttpPost]
+        [Route("GetXDataCheckByID")]
+        public Task GetXDataCheckByID([FromBody] Models.xfile xfile)
+        {
+            ActionContext _context = this.ControllerContext;
+            string constr = StaticUtil.GetConfigValueByKey("XDataConn");
+            XDataResponse response = new XDataResponse();
+            if (xfile.UploadUser == "FACHECK")
+            {
+                try
+                {
+                    var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
+                    string linkSvrName = tbv.Item1;
+                    string dbName = tbv.Item2;
+                    string qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles where xid =" + xfile.XID;
+                    var dataTable = SqlServerHelper.GetTableBySql(qdb, constr);
+                    if (dataTable.Rows.Count > 0)
+                    {
+                       
+                        if (RepostXfile2Sql(dataTable.Rows[0]) == 1)
+                        {
+                            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(constr);
+                            csb.InitialCatalog = StaticUtil.GetLocalDbNameByXData(dataTable.Rows[0]);
+                            var sptext = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "VerifyFinancialData.sql");
+                            var sqls = System.IO.File.ReadAllText(sptext, Encoding.UTF8);
+                            var thisdb = SqlMapperUtil.CMDExcute(sqls, null, csb.ConnectionString);
+                            SqlMapperUtil.CMDExcute("  exec VerifyFinancialData '" + xfile.XID + "'  ", null, csb.ConnectionString);
+                        }
+                        else
+                        {
+                            string pbad = "insert into  xdata.dbo.facheck values("+xfile.XID+", '解包过程出错！', 3)";
+                            var thisdb = SqlMapperUtil.CMDExcute(pbad, null, constr);
+                        }
+                    }
+
+                }
+                catch (Exception err)
+                {
+                    string pbad = "insert into  xdata.dbo.facheck values(" + xfile.XID + ", '解包过程出错: " + err.Message.Replace("'", "").Replace(":", "").Replace("?","")+"', 3)";
+                    var thisdb = SqlMapperUtil.CMDExcute(pbad, null, constr);
+                }
+            }
+            string sql = "select * from xdata.dbo.facheck where xid=" + xfile.XID;
+            try
+            {
+                var dataTable = SqlServerHelper.GetTableBySql(sql, constr);
+                var ret = Newtonsoft.Json.JsonConvert.SerializeObject(dataTable);
+                //StringBuilder sb = new StringBuilder();
+                //if (dataTable != null && dataTable.Rows.Count > 0)
+                //{
+                //    sb.Append("[ret:2;v:{");
+                //    foreach (DataRow dr in dataTable.Rows)
+                //    {
+                //        sb.Append("ErrType:" + dr["Errtype"].ToString());
+                //        sb.Append(";");
+                //        sb.Append("ErrMsg:" + dr["ErrMsg"].ToString());
+                //    }
+                //    sb.Append("}]");
+                //}
+                //else
+                //{
+                //    sb.Append("{ret:0;v:CheckSuccessed}");                   
+                //}
+                response.ResultContext = ret;
+                return Ok(response).ExecuteResultAsync(_context);
+            }
+            catch (Exception err)
+            {
+                response.ResultContext = err.Message;
+                return BadRequest(response).ExecuteResultAsync(_context);
+            }
+        }
+
         [HttpPost]
         [Route("XData2EAS")]
         public Task XData2EAS([FromBody] Models.xfile xfile)
@@ -114,8 +188,8 @@ namespace XDataMidService.Controllers
                     response.ResultContext = localDbName + " 数据正在准备中！ ";
                     response.HttpStatusCode = 500;
                     return BadRequest(response).ExecuteResultAsync(_context);
-                }               
-                 
+                }
+
                 string constr = StaticUtil.GetConfigValueByKey("XDataConn");
                 string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID;
                 var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
@@ -123,7 +197,7 @@ namespace XDataMidService.Controllers
                 string linkSvrName = tbv.Item1;
                 string dbName = tbv.Item2;
                 int port = new System.Uri(_configuration.GetSection("urls").Value).Port;
-                if (thisdb != 1 && port==80)
+                if (thisdb != 1 && port == 80)
                 {
 
                     qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
@@ -138,7 +212,7 @@ namespace XDataMidService.Controllers
                     {
                         response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
                     }
-                    
+
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
                         qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
@@ -148,17 +222,17 @@ namespace XDataMidService.Controllers
                             int maxxid = Convert.ToInt32(srcFiles.Rows[0]["XID"]);
                             qdb = "select max(xid) from xdata.dbo.xfiles ";
                             int thexid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
-                           
-                            if ( xfile.XID < thexid)
+
+                            if (xfile.XID < thexid)
                             {
-                                _logger.LogInformation( "  开始处理缓存外数据 " + xfile.XID +" "+ DateTime.Now);
+                                _logger.LogInformation("  开始处理缓存外数据 " + xfile.XID + " " + DateTime.Now);
                                 DataRow dr = srcFiles.Rows.Cast<DataRow>().Where(r => r.Field<int>("XID") == xfile.XID).FirstOrDefault();
                                 if (RepostXfile2Sql(dr) == 1)
                                 {
                                     StaticData.X2EasList[key] = "";
                                     var pjson = JsonSerializer.Serialize(xfile);
                                     Tuple<int, string> ret = null;
-                                    string XData_Host = StaticUtil.GetConfigValueByKey("XData_Host"); 
+                                    string XData_Host = StaticUtil.GetConfigValueByKey("XData_Host");
                                     string[] XData_Host_Port = StaticUtil.GetConfigValueByKey("XData_Host_Port").Split(';');
                                     UriBuilder uriBuilder0 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[0]), "XData/XData2EAS");
                                     UriBuilder uriBuilder1 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[1]), "XData/XData2EAS");
@@ -241,19 +315,19 @@ namespace XDataMidService.Controllers
             return Ok(response).ExecuteResultAsync(_context);
         }
         private int RepostXfile2Sql(DataRow dr)
-        { 
+        {
             xfile xfile = new xfile();
             xfile.WP_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
             xfile.FileName = dr["FileName"].ToString();
             xfile.CustomName = dr["CustomName"].ToString();
             xfile.ZTName = dr["ZTName"].ToString();
-            xfile.XID = Convert.ToInt32(dr["XID"]); 
+            xfile.XID = Convert.ToInt32(dr["XID"]);
             xfile.CustomID = dr["CustomID"].ToString();
             xfile.ZTID = dr["ZTID"].ToString();
             xfile.ZTYear = dr["ZTYear"].ToString();
             xfile.PZBeginDate = dr["PZBeginDate"].ToString();
             xfile.PZEndDate = dr["PZEndDate"].ToString();
-            var pjson = JsonSerializer.Serialize(xfile); 
+            var pjson = JsonSerializer.Serialize(xfile);
             Tuple<int, string> ret = null;
             string XData_Host = StaticUtil.GetConfigValueByKey("XData_Host");
             string[] XData_Host_Port = StaticUtil.GetConfigValueByKey("XData_Host_Port").Split(';');
@@ -270,7 +344,7 @@ namespace XDataMidService.Controllers
             return ret.Item1;
         }
         public static Tuple<int, string> HttpHandlePost(string url, string pjson)
-        {             
+        {
             HttpClientHandler httpHandler = new HttpClientHandler();
             string strRet = string.Empty;
             HttpClient httpClient = new HttpClient();
@@ -305,7 +379,7 @@ namespace XDataMidService.Controllers
                             {
                                 Console.WriteLine(c.Value);
                                 strRet = c.Value.ToString();
-                                
+
                             }
                         }
 
@@ -341,12 +415,12 @@ namespace XDataMidService.Controllers
             }
             finally
             {
-               
+
                 if (postContent != null)
                     postContent.Dispose();
                 if (response != null)
                     response.Dispose();
-            }            
+            }
             return new Tuple<int, string>(-1, strRet);
         }
 

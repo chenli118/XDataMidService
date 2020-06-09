@@ -163,6 +163,14 @@ namespace XDataMidService.BPImp
             {
                 try
                 {
+                    try
+                    {
+                        if (conn.State != ConnectionState.Open) conn.Open();
+                    }
+                    catch
+                    {
+                        if (conn.State != ConnectionState.Open) conn.Open();
+                    } 
                     if (conn.State != System.Data.ConnectionState.Open) conn.Open();
                     System.Data.SqlClient.SqlCommand sqlCommand = new System.Data.SqlClient.SqlCommand(sql, conn);
                     foreach (var sqlBatch in sql.Split(new[] { "GO" ,"go"}, StringSplitOptions.RemoveEmptyEntries))

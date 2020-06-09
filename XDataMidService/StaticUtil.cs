@@ -25,6 +25,21 @@ namespace XDataMidService
             var configure = XDataConfig.Build();    
             return  configure.GetConnectionString(confKey);
         }
+        public static string GetLocalDbNameByXData(System.Data.DataRow xRow)
+        {
+            byte[] asciiBytes = Encoding.ASCII.GetBytes(xRow["xID"] + xRow["customID"].ToString().Replace("-", "") + xRow["ztYear"] + xRow["pzBeginDate"] + xRow["pzEndDate"]);
+            StringBuilder sb = new StringBuilder();
+            Array.ForEach(asciiBytes, (c) =>
+            {
+                if ((c > 47 && c < 58)
+                || (c > 64 && c < 91)
+                || (c > 96 && c < 123))
+                { sb.Append((char)c); }
+            });
+            string dbName = sb.ToString();
+            if (dbName.Length > 50) dbName = dbName.Substring(0, 49);
+            return dbName;
+        }
         public static string GetLocalDbNameByXFile(XDataMidService.Models.xfile xfile)
         {
             byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile.XID+xfile.CustomID.Replace("-","")+ xfile.ZTYear + xfile.PZBeginDate + xfile.PZEndDate);
