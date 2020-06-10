@@ -7,6 +7,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 
@@ -209,6 +210,30 @@ namespace XDataMidService
                 SqlCommand sqlCommand = new SqlCommand(sql, connection);
                 sqlCommand.CommandTimeout = 1000*1200;
                 return sqlCommand.ExecuteNonQuery();
+            }
+        }
+        public static void ExecuteNonQueryBatch(string connectionName, string sql)
+        {
+            if (sql == null) throw new ArgumentNullException("sqlStatements");
+            if (connectionName == null) throw new ArgumentNullException("connectionString");
+
+            using (SqlConnection connection = GetOpenConnection(connectionName))
+            {
+                Regex r = new Regex(@"^(\s|\t)*go(\s\t)?.*", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+
+                foreach (string s in r.Split(sql))
+                {
+                    //Skip empty statements, in case of a GO and trailing blanks or something
+                    string thisStatement = s.Trim();
+                    if (String.IsNullOrEmpty(thisStatement)) continue;
+
+                    using (SqlCommand cmd = new SqlCommand(thisStatement, connection))
+                    {
+                        cmd.CommandType = CommandType.Text;
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
             }
         }
         /// <summary>

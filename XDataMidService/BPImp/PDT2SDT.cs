@@ -35,37 +35,47 @@ namespace XDataMidService.BPImp
             _xdException = new Exception(xf.ZTName);
             response = new XDataResponse();
             response.ResultContext = xf.ZTName;
-
+            localDbName = StaticUtil.GetLocalDbNameByXFile(xf);
+            _tempFile = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", localDbName, xf.FileName);
         }
-        public bool DownLoadFile(xfile xf)
+        public bool DownLoadFile(xfile xf,out string strRet)
         {
+            if (System.IO.File.Exists(_tempFile))
+            {
+                strRet = _tempFile;
+                return true;
+            }
+            string strReult = string.Empty;
             string XdataAccount = StaticUtil.GetConfigValueByKey("XdataWPAccount");
             string wp_host = StaticUtil.GetConfigValueByKey("WP_HOST");
             if (!string.IsNullOrEmpty(XdataAccount))
             {
                 string logname = XdataAccount.Split('#')[1];
                 string logpwd = XdataAccount.Split('#')[0];
-                var ndc = new MinniDown(wp_host, logname, logpwd);
-
-                FileInfo fileInfo = new FileInfo(xf.FileName);
-                localDbName = StaticUtil.GetLocalDbNameByXFile(xf);
-                var tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", localDbName);
-                if (!Directory.Exists(tempFolder)) Directory.CreateDirectory(tempFolder);
-                _tempFile = Path.Combine(tempFolder.Replace('/', '\\'), fileInfo.Name);
-                if (File.Exists(_tempFile))
+                var ndc = new MinniDown(wp_host, logname, logpwd);               
+                FileInfo fileInfo = new FileInfo(_tempFile);
+                try
                 {
-                    File.SetAttributes(_tempFile, FileAttributes.Normal);
-                    File.Delete(_tempFile);
+                    if (!fileInfo.Directory.Exists) fileInfo.Directory.Create();
+                    if (fileInfo.Exists)
+                    {
+                        File.SetAttributes(_tempFile, FileAttributes.Normal);
+                        File.Delete(_tempFile);
+                    } 
+                    string struPath = xf.CustomID + "/" + xf.FileName;
+                    bool bRet = ndc.DownloadFile(xf.WP_GUID, struPath, _tempFile, out strReult);
+                    if (bRet)
+                    {
+                        strRet = strReult;
+                        return true;
+                    }
                 }
-                string strRet = string.Empty;
-                string struPath = xf.CustomID + "/" + xf.FileName;
-                bool bRet = ndc.DownloadFile(xf.WP_GUID, struPath, _tempFile, out strRet);
-                if (bRet)
+                catch(Exception err)
                 {
-                    return true;
+                    strReult=err.Message;
                 }
-
             }
+            strRet = strReult;
             return false;
         }
         public XDataResponse Start()

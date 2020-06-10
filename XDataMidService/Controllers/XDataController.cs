@@ -39,6 +39,15 @@ namespace XDataMidService.Controllers
             string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
             try
             {
+                string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
+                string conStr = StaticUtil.GetConfigValueByKey("XDataConn");
+                string sql = " select 1 from sys.databases where  name='"+localDbName+"'";
+                int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                if (pzqj == 1) 
+                {
+                    _logger.LogInformation(xfile.XID + " " +xfile.ZTName + " 数据已存在，跳过解包过程！  " + DateTime.Now);
+                    return Ok(response).ExecuteResultAsync(_context);
+                }
                 if (!StaticData.X2SqlList.ContainsKey(key))
                 {
                     StaticData.X2SqlList.Add(key, 1);
@@ -50,15 +59,15 @@ namespace XDataMidService.Controllers
                 }
                 StaticData.X2SqlList[key] = 1;
                 PDT2SDT dT2SDT = new PDT2SDT(xfile);
-                if (dT2SDT.DownLoadFile(xfile))
+                string strRet = string.Empty;
+                if (dT2SDT.DownLoadFile(xfile,out strRet))
                 {
                     response = dT2SDT.Start();
                     if (response.HttpStatusCode == 200)
                     {
                         try
                         {
-                            BPImp.XDataBP.InsertXdata(xfile);
-                            StaticData.X2SqlList[key]++;
+                            BPImp.XDataBP.InsertXdata(xfile); 
                             _logger.LogInformation(xfile.ZTName + " " + response.ResultContext + " " + DateTime.Now);
                             return Ok(response).ExecuteResultAsync(_context);
                         }
@@ -72,8 +81,7 @@ namespace XDataMidService.Controllers
                     else
                     {
                         try
-                        {
-                            StaticData.X2SqlList[key]++;
+                        {                            
                             response.ResultContext = response.ResultContext + "||" + dT2SDT._xdException.Message;
                             XDataBP.InsertBadFile(xfile, response.ResultContext);
                             XDataBP.DropDB(xfile);
@@ -84,9 +92,8 @@ namespace XDataMidService.Controllers
                         }
                         return BadRequest(response).ExecuteResultAsync(_context);
                     }
-                }
-                StaticData.X2SqlList[key] = 0;
-                string errMsg = string.Format("{0} 从网盘下载账套{1}文件 {2} 失败: ", xfile.CustomName, xfile.ZTName, xfile.FileName);
+                }             
+                string errMsg = string.Format("{0} 从网盘下载账套{1}文件 {2} 失败: "+ strRet, xfile.CustomName, xfile.ZTName, xfile.FileName);
                 _logger.LogError(errMsg);
                 XDataBP.InsertBadFile(xfile, errMsg);
                 response.ResultContext = errMsg;
@@ -124,12 +131,12 @@ namespace XDataMidService.Controllers
                             csb.InitialCatalog = StaticUtil.GetLocalDbNameByXData(dataTable.Rows[0]);
                             var sptext = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "VerifyFinancialData.sql");
                             var sqls = System.IO.File.ReadAllText(sptext, Encoding.UTF8);
-                            var thisdb = SqlMapperUtil.CMDExcute(sqls, null, csb.ConnectionString);
+                            SqlMapperUtil.ExecuteNonQueryBatch(csb.ConnectionString,sqls);
                             SqlMapperUtil.CMDExcute("  exec VerifyFinancialData '" + xfile.XID + "'  ", null, csb.ConnectionString);
                         }
                         else
                         {
-                            string pbad = "insert into  xdata.dbo.facheck values("+xfile.XID+", '解包过程出错！', 3)";
+                            string pbad = "insert into  xdata.dbo.facheck values("+xfile.XID+ ", '" + xfile.XID + " 解包过程出错！', 3)";
                             var thisdb = SqlMapperUtil.CMDExcute(pbad, null, constr);
                         }
                     }
@@ -137,7 +144,7 @@ namespace XDataMidService.Controllers
                 }
                 catch (Exception err)
                 {
-                    string pbad = "insert into  xdata.dbo.facheck values(" + xfile.XID + ", '解包过程出错: " + err.Message.Replace("'", "").Replace(":", "").Replace("?","")+"', 3)";
+                    string pbad = "insert into  xdata.dbo.facheck values(" + xfile.XID + ", '解包过程出错: " +  xfile.XID +" "+ err.Message.Replace("'", "").Replace(":", "").Replace("?","")+"    ', 3)";
                     var thisdb = SqlMapperUtil.CMDExcute(pbad, null, constr);
                 }
             }
@@ -146,22 +153,7 @@ namespace XDataMidService.Controllers
             {
                 var dataTable = SqlServerHelper.GetTableBySql(sql, constr);
                 var ret = Newtonsoft.Json.JsonConvert.SerializeObject(dataTable);
-                //StringBuilder sb = new StringBuilder();
-                //if (dataTable != null && dataTable.Rows.Count > 0)
-                //{
-                //    sb.Append("[ret:2;v:{");
-                //    foreach (DataRow dr in dataTable.Rows)
-                //    {
-                //        sb.Append("ErrType:" + dr["Errtype"].ToString());
-                //        sb.Append(";");
-                //        sb.Append("ErrMsg:" + dr["ErrMsg"].ToString());
-                //    }
-                //    sb.Append("}]");
-                //}
-                //else
-                //{
-                //    sb.Append("{ret:0;v:CheckSuccessed}");                   
-                //}
+            
                 response.ResultContext = ret;
                 return Ok(response).ExecuteResultAsync(_context);
             }
