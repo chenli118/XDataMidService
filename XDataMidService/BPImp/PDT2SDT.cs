@@ -40,7 +40,7 @@ namespace XDataMidService.BPImp
         }
         public bool DownLoadFile(xfile xf,out string strRet)
         {
-            if (System.IO.File.Exists(_tempFile))
+            if (System.IO.File.Exists(_tempFile) && new FileInfo(_tempFile).Length>100)
             {
                 strRet = _tempFile;
                 return true;
@@ -95,6 +95,10 @@ namespace XDataMidService.BPImp
             }
             localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
             xfile.ProjectID = localDbName;
+            conStr = StaticUtil.GetConfigValueByKey("XDataConn");
+            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(conStr);
+            csb.InitialCatalog = localDbName;
+            conStr = csb.ConnectionString;
             if (!File.Exists(_tempFile))
             {
                 response.ResultContext += "XData File No Found";
@@ -577,6 +581,7 @@ namespace XDataMidService.BPImp
                 accountTable.Columns.Add("Syjz", typeof(int));
                 //按级别排序
                 string qsql = "SELECT km.kmdm,km.kmmc,Xmhs,Kmjb,IsMx,Ncye,Jfje1,Dfje1,Ncsl  FROM KM   left join kmye  on km.kmdm = kmye.kmdm  order by Kmjb";
+                
                 dynamic ds = SqlMapperUtil.SqlWithParams<dynamic>(qsql, null, conStr);
 
                 foreach (var vd in ds)
