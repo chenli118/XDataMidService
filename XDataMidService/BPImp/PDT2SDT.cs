@@ -54,6 +54,7 @@ namespace XDataMidService.BPImp
                 string logpwd = XdataAccount.Split('#')[0];
                 var ndc = new MinniDown(wp_host, logname, logpwd);               
                 FileInfo fileInfo = new FileInfo(_tempFile);
+                string struPath = xf.CustomID + "/" + xf.FileName;
                 try
                 {
                     if (!fileInfo.Directory.Exists) fileInfo.Directory.Create();
@@ -61,8 +62,7 @@ namespace XDataMidService.BPImp
                     {
                         File.SetAttributes(_tempFile, FileAttributes.Normal);
                         File.Delete(_tempFile);
-                    } 
-                    string struPath = xf.CustomID + "/" + xf.FileName;
+                    }                    
                     bool bRet = ndc.DownloadFile(xf.WP_GUID, struPath, _tempFile, out strReult);
                     if (bRet)
                     {
@@ -72,7 +72,9 @@ namespace XDataMidService.BPImp
                 }
                 catch(Exception err)
                 {
-                    strReult=err.Message;
+                    if (DownLoadFile(xf, out strRet))
+                        return true;
+                    strReult =err.Message;
                 }
             }
             strRet = strReult;
@@ -487,7 +489,18 @@ namespace XDataMidService.BPImp
 
             try
             {
-                string sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'kjqj'";
+                string sql = "   select 1 from sys.objects where name = 'jzpz' ";
+                int ispz = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
+                if (ispz != 1)
+                {
+                    sql = "   SELECT  max(Ncye)  FROM[dbo].[kmye] ";
+                    if (SqlMapperUtil.SqlWithParamsSingle<decimal>(sql, null, conStr) > 0)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'kjqj'";
                 int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 string fdid = ", FDetailID";
                 string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx"+fdid+") ";
@@ -580,7 +593,7 @@ namespace XDataMidService.BPImp
                 accountTable.Columns.Add("Ncsl", typeof(int));
                 accountTable.Columns.Add("Syjz", typeof(int));
                 //按级别排序
-                string qsql = "SELECT km.kmdm,km.kmmc,Xmhs,Kmjb,IsMx,Ncye,Jfje1,Dfje1,Ncsl  FROM KM   left join kmye  on km.kmdm = kmye.kmdm  order by Kmjb";
+                string qsql = " SELECT km.kmdm,km.kmmc,Xmhs,Kmjb,IsMx,Ncye,Jfje1,Dfje1,Ncsl  FROM KM   left join kmye  on km.kmdm  COLLATE Chinese_PRC_CS_AS_KS_WS= kmye.kmdm COLLATE Chinese_PRC_CS_AS_KS_WS   order by Kmjb  ";
                 
                 dynamic ds = SqlMapperUtil.SqlWithParams<dynamic>(qsql, null, conStr);
 

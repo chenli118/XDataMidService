@@ -21,6 +21,8 @@ namespace XDataBG
         private static bool bRunning;
         private static string connectString;
         private static object obj_lock = new object();
+
+        private static Dictionary<int ,xfile> ProcessList;
         static void Main(string[] args)
         {
             logfile = logfile.Replace("log.", Guid.NewGuid() + ".");
@@ -28,6 +30,7 @@ namespace XDataBG
             //Mutex mt = new Mutex(false, "XDataBG", out bCreate);
             //if (bCreate)
             {
+                ProcessList = new Dictionary<int, xfile>();
                 var autoEvent = new AutoResetEvent(false);
                 _timer = new Timer(p => FlushData(), autoEvent, 0, 10000);
                 autoEvent.WaitOne();
@@ -162,7 +165,7 @@ namespace XDataBG
                     parallelOptions.MaxDegreeOfParallelism = 2;
                     _ = Parallel.ForEach(customDb, parallelOptions, (c, loopstate) =>
                        {
-
+                          
                            DataRow dr = c.Value[0];
                            xfile xfile = new xfile();
                            xfile.wp_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
@@ -176,31 +179,36 @@ namespace XDataBG
                            xfile.ztYear = dr["ZTYear"].ToString();
                            xfile.pzBeginDate = dr["PZBeginDate"].ToString();
                            xfile.pzEndDate = dr["PZEndDate"].ToString();
-                           var pjson = JsonSerializer.Serialize(xfile);
-                           Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
-                           Tuple<int, string> ret = null;
-                           string XData_Host = ConnectionString("XData_Host");
-                           string[] XData_Host_Port = ConnectionString("XData_Host_Port").Split(';');
-                           UriBuilder uriBuilder0 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[0]), "XData/XData2SQL");
-                           UriBuilder uriBuilder1 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[1]), "XData/XData2SQL");
-                           if (xfile.xID % 2 == 0)
+                           if (!ProcessList.ContainsKey ( xfile.xID))
                            {
-                               ret = HttpHandlePost(uriBuilder0.Uri.AbsoluteUri, pjson);
-                           }
-                           else
-                           {
-                               ret = HttpHandlePost(uriBuilder1.Uri.AbsoluteUri, pjson);
-                           }
-                           Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
-                           if (ret.Item1 == 1)
-                           {
-                               Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
-                           }
-                           else
-                           {
-                               string sql = " delete from xdata..badfiles   where errmsg like '%登录失%'";
-                               ExecuteSql(sql);
-                               Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Fail !" + DateTime.Now);
+                               ProcessList.Add(xfile.xID,xfile);
+                               var pjson = JsonSerializer.Serialize(xfile);
+                               Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
+                               Tuple<int, string> ret = null;
+                               string XData_Host = ConnectionString("XData_Host");
+                               string[] XData_Host_Port = ConnectionString("XData_Host_Port").Split(';');
+                               UriBuilder uriBuilder0 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[0]), "XData/XData2SQL");
+                               UriBuilder uriBuilder1 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[1]), "XData/XData2SQL");
+                               if (xfile.xID % 2 == 0)
+                               {
+                                   ret = HttpHandlePost(uriBuilder0.Uri.AbsoluteUri, pjson);
+                               }
+                               else
+                               {
+                                   ret = HttpHandlePost(uriBuilder1.Uri.AbsoluteUri, pjson);
+                               }
+                               Console.WriteLine(xfile.xID + "  " + xfile.ztName + "end XData2SQL :" + DateTime.Now);
+                               if (ret.Item1 == 1)
+                               {
+                                   Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
+                               }
+                               else
+                               {
+                                   string sql = " delete from xdata..badfiles   where errmsg like '%登录失%'";
+                                   ExecuteSql(sql);
+                                   Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Fail !" + DateTime.Now);
+                               }
+                               ProcessList.Remove(xfile.xID);
                            }
 
                        });
