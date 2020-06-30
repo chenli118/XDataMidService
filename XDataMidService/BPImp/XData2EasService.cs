@@ -85,13 +85,14 @@ namespace XDataMidService.BPImp
             string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;
             try
             {
+                var dapper = DapperHelper<xfile>.Create("XDataConn");
                 string constr = StaticUtil.GetConfigValueByKey("XDataConn");
                 string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
                 string qdb = "select 1 from sys.databases where name = '" + localDbName+"'";
                 var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
                 if (thisdb != 1)
                 {
-                    SqlServerHelper.ExecuteSql(" delete from xdata.dbo.xfiles where xid = "+xfile.XID, constr);
+                    dapper.Execute(" delete from xdata.dbo.xfiles where xid = "+xfile.XID,null);
                     response.HttpStatusCode = 500;
                     response.ResultContext = string.Format("文件{0} 项目{1} 数据未准备好，请重试！", xfile.XID, xfile.ProjectID);
                     _logger.LogError(response.ResultContext  +" " + DateTime.Now);
@@ -102,10 +103,10 @@ namespace XDataMidService.BPImp
                     StaticData.X2EasList[key] = xfile.DbName;
                 else
                     StaticData.X2EasList.Add(key, xfile.DbName);
-                var dapper = DapperHelper<xfile>.Create("XDataConn");
+             
                 _logger.LogInformation("开始转换 " + xfile.ProjectID + " 数据到EAS" + DateTime.Now);
 
-                dapper.conStr = constr.Replace("master", localDbName);
+              
                 string projectID = xfile.ProjectID;
                 var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
                 string linkSvrName = tbv.Item1;

@@ -157,7 +157,7 @@ namespace XDataMidService.BPImp
              
         }
 
-        public static int ExecuteSql(string sql, string conStr)
+        public static int ExecuteSqlWithGoSplite(string sql, string conStr)
         {
             using (System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(conStr))
             {
