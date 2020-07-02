@@ -1,6 +1,7 @@
 {
 
   "ConnectionStrings": {
+<<<<<<< HEAD
     "DefaultConnection": "Server=192.168.1.33;uid=sa;pwd=r9eGKrtD; database=XDB;pooling=true;min pool size=5;max pool size=512;connect timeout = 20;",
     "EASConn": "Server=192.168.1.33;uid=sa;pwd=r9eGKrtD; database=master;pooling=true;min pool size=5;max pool size=512;connect timeout = 20;",
     "XDataConn": "Server=192.168.1.239;uid=sa;pwd=easXdata; database=master;pooling=true;min pool size=5;max pool size=512;connect timeout = 20;",
@@ -8,6 +9,15 @@
     "Whereas": " 1=1 ",
     "XFilesCache": " 30 ",
     "XData_Host": "192.168.1.239",
+=======
+    "DefaultConnection": "Server=192.168.1.202;uid=sa;pwd=RE9YuvEb; database=XDB;pooling=true;min pool size=5;max pool size=512;connect timeout = 20;",
+    "EASConn": "Server=192.168.1.202;uid=sa;pwd=RE9YuvEb; database=master;pooling=true;min pool size=5;max pool size=512;connect timeout = 20;",
+    "XDataConn": "Server=192.168.1.207;uid=sa;pwd=easXdata; database=master;pooling=true;min pool size=5;max pool size=512;connect timeout = 20;",
+    "WP_HOST": "192.168.1.220",
+    "Whereas": " 1=1 ",
+    "XFilesCache": " 30 ",
+    "XData_Host": "192.168.1.207",
+>>>>>>> 3e5ca248ff252dfbffd97a0421bdff807d11ac35
     "XData_Host_Port": "5002;5003",
     "XdataWPAccount": "BLtIaItL#xdata@eas.local"
   },
