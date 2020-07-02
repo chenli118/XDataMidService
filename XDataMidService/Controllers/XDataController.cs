@@ -191,7 +191,7 @@ namespace XDataMidService.Controllers
                 int port = new System.Uri(_configuration.GetSection("urls").Value).Port;
                 if (thisdb != 1 && port == 80)
                 {
-
+                    response.HttpStatusCode = 500;
                     qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
                     var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
                     if (!string.IsNullOrWhiteSpace(errmsg))
@@ -207,7 +207,8 @@ namespace XDataMidService.Controllers
 
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
-                        qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
+                        qdb = " select top 1 XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
+                        //qdb += " union all ";
                         var srcFiles = SqlServerHelper.GetTableBySql(qdb, constr);
                         if (srcFiles.Rows.Count > 0)
                         {
@@ -239,7 +240,7 @@ namespace XDataMidService.Controllers
                                     if (ret.Item1 != 1)
                                     {
                                         response.ResultContext = xfile.XID + ": 缓存外数据处理失败，请联系统管理员！";
-                                        response.HttpStatusCode = 500;
+                                      
                                     }
                                     else
                                     {
@@ -250,14 +251,13 @@ namespace XDataMidService.Controllers
                                 }
                                 else
                                 {
-                                    response.ResultContext = xfile.XID + ": 缓存外数据处理失败，请联系统管理员！";
-                                    response.HttpStatusCode = 500;
+                                    response.ResultContext = xfile.XID + ": 缓存外数据处理失败，请联系统管理员！";                                     
                                 }
                             }
                             else
                             {
                                 response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
-                                response.HttpStatusCode = 500;
+                                
                             }
                         }
                     }

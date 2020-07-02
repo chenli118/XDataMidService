@@ -493,7 +493,7 @@ namespace XDataMidService.BPImp
                 int ispz = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 if (ispz != 1)
                 {
-                    sql = "   SELECT  max(Ncye)  FROM[dbo].[kmye] ";
+                    sql = "    SELECT  abs(max(ncye))+abs(min(ncye)) FROM [dbo].[kmye]   ";
                     if (SqlMapperUtil.SqlWithParamsSingle<decimal>(sql, null, conStr) > 0)
                     {
                         return true;
@@ -551,7 +551,8 @@ namespace XDataMidService.BPImp
                 SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
 
                 incNoSql = " with a1 as( select distinct t.incno,a.syjz from dbo.tbvoucher t	with(nolock)	join dbo.Account a	with(nolock)	on t.AccountCode=a.AccountCode	),a2 as (select incno,max(syjz) maxsyjz,min(syjz) minSyjz" +
-                    " from a1  group by incno)	select ROW_NUMBER() OVER(ORDER BY NEWID()) AS ID, * into #a2 from a2 ;	update v set v.fllx=case when a.maxsyjz=3 then 3 when a.maxsyjz=2 and a.minSyjz=1 then 2 else	1	end" +
+                    " from a1  group by incno) " + 
+                    " 	select ROW_NUMBER() OVER(ORDER BY NEWID()) AS ID, * into #a2 from a2 ;	update v set v.fllx=case when a.maxsyjz=3 then 3 when a.maxsyjz=2 and a.minSyjz=1 then 2 else	1	end" +
                     " from dbo.tbvoucher v inner join #a2 a on v.incno=a.incno ;drop table #a2  ";
                 SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
 
@@ -777,11 +778,11 @@ namespace XDataMidService.BPImp
             conStr = csb.ConnectionString;
             var StaticStructAndFn = Path.Combine(Directory.GetCurrentDirectory(), "StaticStructAndFn.tsql");
             var sqls = File.ReadAllText(StaticStructAndFn);
-            SqlServerHelper.ExecuteSql(sqls, conStr);
+            SqlServerHelper.ExecuteSqlWithGoSplite(sqls, conStr);
             string kjqjInsert = "delete dbo.kjqj where Projectid='{0}'  " +
                 " insert  dbo.kjqj(ProjectID,CustomerCode,CustomerName,BeginDate,EndDate,KJDate)" +
                 "  select '{0}','{1}','{1}','{2}','{3}','{4}'";
-            SqlServerHelper.ExecuteSql(string.Format(kjqjInsert, dbName, xfile.ProjectID, _beginDate, _endDate, _auditYear), conStr);
+            SqlServerHelper.ExecuteSqlWithGoSplite(string.Format(kjqjInsert, dbName, xfile.ProjectID, _beginDate, _endDate, _auditYear), conStr);
 
         }
         private bool DBInit(string[] pfiles)
@@ -801,10 +802,10 @@ namespace XDataMidService.BPImp
                     || (Path.GetFileNameWithoutExtension(p).ToLower() != "jzpz" &&
                         Path.GetFileNameWithoutExtension(p).ToLower().IndexOf("jzpz") > -1)));
                 if (dbFiles.Count() == 0) return false;
-                InitDataBase(xfile.ProjectID);
+                InitDataBase(localDbName);
                 Array.ForEach(dbFiles.ToArray(), (string dbfile) =>
                {
-                   PD2SqlDB(dbfile, xfile.ProjectID);
+                   PD2SqlDB(dbfile);
 
                    //else if (importType != 0 &&
                    //         tables.Count(x => dbfile.ToLower().IndexOf(x) > -1) > 0)
@@ -823,7 +824,7 @@ namespace XDataMidService.BPImp
             return true;
 
         }
-        private bool PD2SqlDB(string filepath, String dbName)
+        private bool PD2SqlDB(string filepath)
         {
             bool bRet = false;
             string filename = Path.GetFileNameWithoutExtension(filepath);
@@ -880,7 +881,7 @@ namespace XDataMidService.BPImp
                 string createDTSql = preProc + dtstring + " GO " + createProc;
                 if (!string.IsNullOrEmpty(createDTSql))
                 {
-                    SqlServerHelper.ExecuteSql(createDTSql, conStr);
+                    SqlServerHelper.ExecuteSqlWithGoSplite(createDTSql, conStr);
                 }
 
                 int idx = 0;

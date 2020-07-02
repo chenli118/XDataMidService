@@ -145,6 +145,7 @@ namespace XDataBG
                 {
                     bRunning = false;
                     Console.WriteLine("Nothing Todo :" + DateTime.Now);
+                    BatchDetachDB();
                     return;
                 }
                 else
@@ -201,6 +202,8 @@ namespace XDataBG
                                if (ret.Item1 == 1)
                                {
                                    Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
+                                   string sql = " delete from xdata..badfiles   where errmsg like '%网盘下载%'";
+                                   ExecuteSql(sql);
                                }
                                else
                                {
@@ -217,7 +220,8 @@ namespace XDataBG
             }
             catch (Exception exception)
             {
-                WriteLog(logfile, DateTime.Now + " : " + exception.Message);
+                 
+                Console.WriteLine("ERROR:"+exception.Message+ " " + DateTime.Now);
             }
             finally
             {
@@ -240,6 +244,7 @@ namespace XDataBG
                 }
                 catch (Exception err)
                 {
+                    Console.WriteLine(err.Message);
                     WriteLog(logfile, DateTime.Now + " : " + err.Message);
                     return -1;
                 } 
@@ -262,13 +267,14 @@ namespace XDataBG
                 }
                 catch (Exception err)
                 {
+                    Console.WriteLine(err.Message);
                     WriteLog(logfile, DateTime.Now + " : " + err.Message);
                 }
                 return false;
             }
         }
 
-        private static DataTable GetXfiles(string sql)
+        private static DataTable GetTableBySql(string sql)
         {
             connectString = ConnectionString("XDataConn");
             DataTable dt = new DataTable();
@@ -314,7 +320,7 @@ namespace XDataBG
         }
         private static void LoadQueue()
         {
-            DataTable xfiles = GetXfiles("select max(xid) xid from  XData.dbo.[XFiles]  ");
+            DataTable xfiles = GetTableBySql("select max(xid) xid from  XData.dbo.[XFiles]  ");
             int maxid = Convert.ToInt32(xfiles.Rows[0].ItemArray[0]);
             connectString = ConnectionString("XDataConn");
             var whereas = ConnectionString("Whereas");
@@ -341,6 +347,7 @@ namespace XDataBG
                 }
                 catch (Exception err)
                 {
+                    Console.WriteLine(" Load data fail: "+ err.Message+ " "+ DateTime.Now);
                     WriteLog(logfile, DateTime.Now + " : " + err.Message);
                 }
             }
@@ -387,6 +394,79 @@ namespace XDataBG
         private static  void WriteLog(string path, string message)
         {
           // await Task.Run(() => { System.IO.File.AppendAllText(path, message); });
+        }
+        private static void BatchDetachDB()
+        {
+            string sql = " select * from sys.databases where name <> 'xdata' AND database_id> 4 AND len(name)>20  and create_date< GETDATE()-49 ";
+            DataTable allDB = GetTableBySql(sql);
+            if (allDB.Rows.Count == 0) return;
+
+            string fName = "SELECT   name ,   physical_name  FROM sys.master_files ; ";
+            DataTable files = GetTableBySql(fName);
+            Dictionary<string, List<string>> physiclFiles = new Dictionary<string, List<string>>();
+            foreach (DataRow row in files.Rows)
+            {
+                string dname = row["name"].ToString();
+                dname = dname.TrimEnd("_log".ToCharArray());
+                if (!physiclFiles.ContainsKey(dname))
+                {
+                    List<string> list = new List<string>();
+                    list.Add(row["physical_name"].ToString());
+                    physiclFiles[dname] = list;
+                }
+                else
+                    physiclFiles[dname].Add(row["physical_name"].ToString());
+
+            }
+
+         
+
+
+            string xfsql = " select * from xdata.dbo.xfiles ";
+            DataTable xfDB = GetTableBySql(xfsql);
+            foreach (DataRow dataRow in xfDB.Rows)
+            {
+                string localdbname = GetLocalDbNameByXFile(dataRow);
+                Parallel.ForEach(allDB.Rows.Cast<DataRow>(), dr =>
+                {
+                    string dbname = dr["name"].ToString();// 
+                    if (localdbname == dbname)
+                        try
+                        {
+
+                            sql = string.Format(" exec sp_detach_db '{0}','true' ", dbname);
+                            ExecuteSql(sql);
+                            foreach (var item in physiclFiles[dbname])
+                            {
+                                System.IO.File.Delete(item);
+                            }
+                            string delsql = string.Format(" delete from xdata.dbo.xfiles where xid={0} ", dataRow["xid"]);
+                            ExecuteSql(delsql);
+                            Console.WriteLine("detach  database " + dbname);
+                        }
+                        catch (Exception err)
+                        {
+                            Console.WriteLine(err.Message);
+
+                        }
+
+                });
+            }
+        }
+        private static string GetLocalDbNameByXFile(DataRow xfile)
+        {
+            byte[] asciiBytes = Encoding.ASCII.GetBytes(xfile["xID"] + xfile["customID"].ToString().Replace("-", "") + xfile["ztYear"] + xfile["pzBeginDate"] + xfile["pzEndDate"]);
+            StringBuilder sb = new StringBuilder();
+            Array.ForEach(asciiBytes, (c) =>
+            {
+                if ((c > 47 && c < 58)
+                || (c > 64 && c < 91)
+                || (c > 96 && c < 123))
+                { sb.Append((char)c); }
+            });
+            string dbName = sb.ToString();
+            if (dbName.Length > 50) dbName = dbName.Substring(0, 49);
+            return dbName;
         }
     }
     public class xfile
