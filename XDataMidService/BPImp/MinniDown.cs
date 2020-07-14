@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -14,8 +15,9 @@ namespace XDataMidService.BPImp
 {
     public class MinniDown
     {
-        HttpClientHandler httpHandler = new HttpClientHandler();
+      
         HttpClient httpClient = null;
+        private readonly object dlock = new object();
         string _host, _logName, _logPwd,_token;
         public MinniDown(string host,string logName,string logPwd)
         {
@@ -26,7 +28,7 @@ namespace XDataMidService.BPImp
             httpClient.Timeout = TimeSpan.FromMinutes(15);
             GetToken(out _token);
         }
-        
+       // [MethodImpl(MethodImplOptions.Synchronized)]
         public bool DownloadFile(string libID, string libFilePathName, string localFilePathName, out string strRet)
         {
             bool bRet = false;

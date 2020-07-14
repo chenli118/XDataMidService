@@ -16,6 +16,7 @@ using NetDiskLibrary;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Connections;
 using System.Data.SqlClient;
+using System.Diagnostics.Eventing.Reader;
 
 namespace XDataMidService.BPImp
 {
@@ -72,8 +73,8 @@ namespace XDataMidService.BPImp
                 }
                 catch(Exception err)
                 {
-                    if (DownLoadFile(xf, out strRet))
-                        return true;
+                    //if (DownLoadFile(xf, out strRet))
+                    //    return true;
                     strReult =err.Message;
                 }
             }
@@ -500,10 +501,12 @@ namespace XDataMidService.BPImp
                     }
                     return false;
                 }
+                sql = " truncate table TBVoucher ; ";
+                SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'kjqj'";
                 int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 string fdid = ", FDetailID";
-                string jzpzSQL = " truncate table TBVoucher ; insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx"+fdid+") ";
+                string jzpzSQL = "  insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx"+fdid+") ";
                 if (pzqj == 1)
                 {                   
                     jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date], DATENAME(year,pz_date)+DATENAME(month,pz_date)   as Period ,Pzh,isnull(fjzs,space(0)) as Djh," +
@@ -533,14 +536,62 @@ namespace XDataMidService.BPImp
                 {
                     jzpzSQL= jzpzSQL.Replace(fdid,"");
                 }
-                SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                sql = " select IncNo from jzpz with(nolock) ";
+                DataTable dtIncNo = SqlServerHelper.GetTableBySql(sql, conStr);
+                int startidx = 0;
+                int stepidx = 2000;
+                int rowcount = dtIncNo.Rows.Count;
+                string tmpWhere = " ";
+                if (rowcount > 20000)
+                {
+                    while (stepidx + startidx < rowcount)
+                    {
+                        tmpWhere = " where incno <= " + (stepidx + startidx) + " and incno>" + startidx;
+                        jzpzSQL += tmpWhere;
+                        SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                        jzpzSQL = jzpzSQL.Replace(tmpWhere, " ");
+                        startidx = startidx + stepidx;
+
+                    }
+                    tmpWhere  = " where incno>" + startidx; ;
+                    jzpzSQL += tmpWhere;
+                    SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                }
+                else
+                {
+                    SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                }
+                jzpzSQL = jzpzSQL.Replace(tmpWhere, " ");
                 string expzk = " select 	Pzk_TableName	from	pzk	where	Pzk_TableName!='Jzpz' and Pzk_TableName like 'Jzpz%' ";
                 dynamic ds = SqlMapperUtil.SqlWithParams<dynamic>(expzk, null, conStr);
                 string pzkname = "jzpz";
                 foreach (var d in ds)
                 {
                     jzpzSQL = jzpzSQL.Replace("from " + pzkname, "from " + d.Pzk_TableName).Replace("truncate table TBVoucher", "");
-                    SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                    sql = " select IncNo from "+ d.Pzk_TableName + " with(nolock) ";
+                    dtIncNo = SqlServerHelper.GetTableBySql(sql, conStr);
+                    startidx = 0;
+                    stepidx = 2000;
+                    rowcount = dtIncNo.Rows.Count;
+                    tmpWhere = "";
+                    if (rowcount > 20000)
+                    {
+                        while (stepidx + startidx < rowcount)
+                        {
+                            tmpWhere = " where incno <= " + (stepidx + startidx) + " and incno>" + startidx;
+                            jzpzSQL += tmpWhere;
+                            SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                            jzpzSQL = jzpzSQL.Replace(tmpWhere, " ");
+                            startidx = startidx + stepidx;
+
+                        }
+                        jzpzSQL += " where incno>" + startidx;
+                        SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                    }
+                    else
+                    {
+                        SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                    }
                     pzkname = d.Pzk_TableName;
                 }
                 string updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.ProjectID,z.Date,z.Pzh,z.Djh,z.AccountCode,z.Zy,z.Jfje,z.Dfje,z.jfsl,z.fsje,z.jd,z.dfsl,z.ZDR,z.dfkm,z.Wbdm,z.Wbje,z.Hl,z.FDetailID FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";

@@ -30,7 +30,7 @@ namespace XDataBG
             //Mutex mt = new Mutex(false, "XDataBG", out bCreate);
             //if (bCreate)
             {
-                ProcessList = new Dictionary<int, xfile>();
+                
                 var autoEvent = new AutoResetEvent(false);
                 _timer = new Timer(p => FlushData(), autoEvent, 0, 10000);
                 autoEvent.WaitOne();
@@ -39,14 +39,7 @@ namespace XDataBG
         static Dictionary<string, int> runDict = new Dictionary<string, int>();
         public static Tuple<int, string> HttpHandlePost(string url, string pjson)
         {
-            if (!runDict.ContainsKey(pjson))
-            {
-                runDict.Add(pjson, 1);
-            }
-            else
-            {
-                //if (runDict[pjson] >3) return new Tuple<int, string>(3,"超过3次");
-            }
+            
             HttpClientHandler httpHandler = new HttpClientHandler();
             string strRet = string.Empty;
             HttpClient httpClient = new HttpClient();
@@ -117,7 +110,7 @@ namespace XDataBG
             }
             finally
             {
-                runDict[pjson]++;
+                
                 if (postContent != null)
                     postContent.Dispose();
                 if (response != null)
@@ -136,7 +129,8 @@ namespace XDataBG
             if (bRunning) return;
             try
             {
-
+                ProcessList = new Dictionary<int, xfile>();
+                ProcessList.Clear();
                 bRunning = true;
                 customDb = new Dictionary<string, List<DataRow>>();
                 QueueTable = new DataTable();
@@ -145,6 +139,8 @@ namespace XDataBG
                 {
                     bRunning = false;
                     Console.WriteLine("Nothing Todo :" + DateTime.Now);
+                    string sql = " delete from xdata..badfiles   where errmsg like '%网盘下载%'";
+                    ExecuteSql(sql);
                     BatchDetachDB();
                     return;
                 }
@@ -180,9 +176,9 @@ namespace XDataBG
                            xfile.ztYear = dr["ZTYear"].ToString();
                            xfile.pzBeginDate = dr["PZBeginDate"].ToString();
                            xfile.pzEndDate = dr["PZEndDate"].ToString();
-                           if (!ProcessList.ContainsKey ( xfile.xID))
+                           if (!ProcessList.ContainsKey (xfile.xID))
                            {
-                               ProcessList.Add(xfile.xID,xfile);
+                               //ProcessList.Add(xfile.xID,xfile);
                                var pjson = JsonSerializer.Serialize(xfile);
                                Console.WriteLine(xfile.xID + "  " + xfile.ztName + "start XData2SQL :" + DateTime.Now);
                                Tuple<int, string> ret = null;
@@ -202,8 +198,7 @@ namespace XDataBG
                                if (ret.Item1 == 1)
                                {
                                    Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
-                                   string sql = " delete from xdata..badfiles   where errmsg like '%网盘下载%'";
-                                   ExecuteSql(sql);
+                                 
                                }
                                else
                                {
@@ -211,7 +206,7 @@ namespace XDataBG
                                    ExecuteSql(sql);
                                    Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Fail !" + DateTime.Now);
                                }
-                               ProcessList.Remove(xfile.xID);
+                               //ProcessList.Remove(xfile.xID);
                            }
 
                        });
@@ -324,7 +319,7 @@ namespace XDataBG
             int maxid = Convert.ToInt32(xfiles.Rows[0].ItemArray[0]);
             connectString = ConnectionString("XDataConn");
             var whereas = ConnectionString("Whereas");
-            var xFilesCache = ConnectionString("XFilesCache"); 
+            var xFilesCache = ConnectionString("XFilesCache");
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
             string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from " +
                 " [" + linkSvr + "].XDB.dbo.XFiles where xid not in" +

@@ -48,6 +48,7 @@ namespace XDataMidService.Controllers
                     _logger.LogInformation(xfile.XID + " " +xfile.ZTName + " 数据已存在，跳过解包过程！  " + DateTime.Now);
                     return Ok(response).ExecuteResultAsync(_context);
                 }
+
                 if (!StaticData.X2SqlList.ContainsKey(key))
                 {
                     StaticData.X2SqlList.Add(key, 1);
@@ -123,8 +124,7 @@ namespace XDataMidService.Controllers
                     string qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles where xid =" + xfile.XID;
                     var dataTable = SqlServerHelper.GetTableBySql(qdb, constr);
                     if (dataTable.Rows.Count > 0)
-                    {
-                       
+                    {                       
                         if (RepostXfile2Sql(dataTable.Rows[0]) == 1)
                         {
                             SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(constr);
@@ -207,7 +207,7 @@ namespace XDataMidService.Controllers
 
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
-                        qdb = " select top 1 XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
+                        qdb = " select  XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
                         //qdb += " union all ";
                         var srcFiles = SqlServerHelper.GetTableBySql(qdb, constr);
                         if (srcFiles.Rows.Count > 0)

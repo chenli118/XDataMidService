@@ -262,7 +262,7 @@ namespace XDataMidService
         {
             using (SqlConnection connection = GetOpenConnection(connectionName))
             {
-                return connection.Query<T>(sql, (object)parms).FirstOrDefault();
+                return connection.Query<T>(sql, (object)parms,null,true,0,CommandType.Text).FirstOrDefault();
             }
         }
 

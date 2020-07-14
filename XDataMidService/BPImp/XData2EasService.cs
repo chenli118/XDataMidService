@@ -108,6 +108,10 @@ namespace XDataMidService.BPImp
 
               
                 string projectID = xfile.ProjectID;
+                SqlConnectionStringBuilder sqlConnectionStringBuilder = new SqlConnectionStringBuilder(dapper.conStr);
+                sqlConnectionStringBuilder.InitialCatalog = localDbName;
+
+                dapper.conStr = sqlConnectionStringBuilder.ConnectionString;
                 var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
                 string linkSvrName = tbv.Item1;
                 string dbName = tbv.Item2;
