@@ -392,8 +392,9 @@ namespace XDataBG
         }
         private static void BatchDetachDB()
         {
-            string sql = " select * from sys.databases where name <> 'xdata' AND database_id> 4 AND len(name)>20  and create_date< GETDATE()-49 ";
-            DataTable allDB = GetTableBySql(sql);
+            var KeepDays =int.Parse(ConnectionString("KeepDays"));
+            string sql = " select * from sys.databases where name <> 'xdata' AND database_id> 4 AND len(name)>20  and create_date< GETDATE()-"+ KeepDays; 
+             DataTable allDB = GetTableBySql(sql);
             if (allDB.Rows.Count == 0) return;
 
             string fName = "SELECT   name ,   physical_name  FROM sys.master_files ; ";

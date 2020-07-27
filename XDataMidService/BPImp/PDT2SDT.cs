@@ -73,8 +73,8 @@ namespace XDataMidService.BPImp
                 }
                 catch(Exception err)
                 {
-                    //if (DownLoadFile(xf, out strRet))
-                    //    return true;
+                    if (DownLoadFile(xf, out strRet))
+                        return true;
                     strReult =err.Message;
                 }
             }

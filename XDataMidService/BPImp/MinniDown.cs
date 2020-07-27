@@ -39,8 +39,9 @@ namespace XDataMidService.BPImp
             {
                 return false;
             }
-
-            string downloadURL = strRet;
+            UriBuilder uriBuilder = new UriBuilder(strRet);
+            string tmpHost = uriBuilder.Host;
+            string downloadURL = strRet.Replace(tmpHost,_host);
             strRet = "";
 
             bRet = DownloadFile(downloadURL, localFilePathName, out strRet);
