@@ -36,6 +36,7 @@ namespace XDataMidService.Models
         /// -1 前期 1 后期 
         /// </summary>
         public int periodType { get; set; }
+        public DateTime periodBeginDate { get; set; }
         public DateTime periodEndDate { get; set; }
         public DateTime unPackageDate { get; set; }
         public int DataStatus { get; set; }

@@ -110,6 +110,8 @@ namespace XDataMidService.BPImp
             lock (ofile)
             {
                 var files = UnZipFile(_tempFile);
+                if (files == null || files.Length == 0)
+                    stepRet = false;
                 stepRet = DBInit(files);
             }
             if (!stepRet)
@@ -1004,7 +1006,10 @@ namespace XDataMidService.BPImp
             }
             catch (Exception ex)
             {
-                throw new Exception("解压001文件错误:" + ex.Message, ex);
+                //throw new Exception("解压001文件错误:" + ex.Message, ex);
+                response.ResultContext =" "+ ex.Message;
+                Console.WriteLine(ex.Message);
+                return null;
             }
 
         }

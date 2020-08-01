@@ -141,8 +141,13 @@ namespace XDataMidService.BPImp
                         //sb.Append(" go ");
                         sb.AppendFormat(" delete from  {1}.{2}.dbo.[TBVoucher] where projectid ='{0}'  ", projectID, linkSvrName, dbName);
                         sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) " +
-                            " select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
-                            " from  {3}.dbo.TBVoucher where Date<='" + xfile.periodEndDate + "'", projectID, linkSvrName, dbName, localDbName);
+                               " select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
+                               " from  {3}.dbo.TBVoucher where Date<='" + xfile.periodEndDate + "'", projectID, linkSvrName, dbName, localDbName);
+                        if (xfile.periodBeginDate != null && xfile.periodBeginDate > DateTime.MinValue)
+                        {
+                            sb.Append("  and Date>'" + xfile.periodBeginDate + "'");
+                        }
+                       
                         sb.Append(" go ");
                         sb.AppendFormat(" delete from  {1}.{2}.dbo.[AuxiliaryFDetail] where projectid ='{0}' ", projectID, linkSvrName, dbName);
                         sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear from {3}.dbo. AuxiliaryFDetail ", projectID, linkSvrName, dbName, localDbName);
