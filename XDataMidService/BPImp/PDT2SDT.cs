@@ -587,8 +587,10 @@ namespace XDataMidService.BPImp
                             startidx = startidx + stepidx;
 
                         }
-                        jzpzSQL += " where incno>" + startidx;
+                        tmpWhere = " where incno>" + startidx;
+                        jzpzSQL += tmpWhere;
                         SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
+                        jzpzSQL = jzpzSQL.Replace(tmpWhere, " ");
                     }
                     else
                     {
