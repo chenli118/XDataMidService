@@ -122,8 +122,8 @@ namespace XDataMidService.Controllers
             if (xfile.UploadUser == "FACHECK")
             {
                 try
-                {
-                    var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
+                { 
+                    var tbv = SqlServerHelper.GetLinkSrvName(StaticUtil.GetConfigValueByKey("EASConn"), constr);
                     string linkSvrName = tbv.Item1;
                     string dbName = tbv.Item2;
                     string qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles where xid =" + xfile.XID;
@@ -212,7 +212,8 @@ namespace XDataMidService.Controllers
 
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
-                        qdb = " select  XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles order by xid desc ";
+                        var  linkSrc = SqlServerHelper.GetLinkSrvName(StaticUtil.GetConfigValueByKey("EASConn"), constr);
+                        qdb = " select  XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSrc.Item1 + "].XDB.dbo.XFiles order by xid desc ";
                         //qdb += " union all ";
                         var srcFiles = SqlServerHelper.GetTableBySql(qdb, constr);
                         if (srcFiles.Rows.Count > 0)

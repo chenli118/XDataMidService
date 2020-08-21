@@ -25,7 +25,7 @@ namespace XDataMidService.Controllers
         [HttpGet]
         public IEnumerable<Models.xfile> Get()
         {
-            var connectString = StaticUtil.GetConfigValueByKey("XDataConn");
+            var connectString = StaticUtil.GetConfigValueByKey("EASConn");
             var constr = StaticUtil.GetConfigValueByKey("");
             string linkSvr = SqlServerHelper.GetLinkSrvName(connectString, constr).Item1;
             //string sql = "insert into XData.dbo.[XFiles](XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate]) " +
