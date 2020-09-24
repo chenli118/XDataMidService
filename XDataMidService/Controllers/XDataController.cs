@@ -126,7 +126,7 @@ namespace XDataMidService.Controllers
                     var tbv = SqlServerHelper.GetLinkSrvName(StaticUtil.GetConfigValueByKey("EASConn"), constr);
                     string linkSvrName = tbv.Item1;
                     string dbName = tbv.Item2;
-                    string qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSvrName + "].XDB.dbo.XFiles where xid =" + xfile.XID;
+                    string qdb = " select XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate,MountType from  [" + linkSvrName + "].XDB.dbo.XFiles where xid =" + xfile.XID;
                     var dataTable = SqlServerHelper.GetTableBySql(qdb, constr);
                     if (dataTable.Rows.Count > 0)
                     {
@@ -213,7 +213,7 @@ namespace XDataMidService.Controllers
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
                         var  linkSrc = SqlServerHelper.GetLinkSrvName(StaticUtil.GetConfigValueByKey("EASConn"), constr);
-                        qdb = " select  XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate from  [" + linkSrc.Item1 + "].XDB.dbo.XFiles order by xid desc ";
+                        qdb = " select  XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate,MountType from  [" + linkSrc.Item1 + "].XDB.dbo.XFiles order by xid desc ";
                         //qdb += " union all ";
                         var srcFiles = SqlServerHelper.GetTableBySql(qdb, constr);
                         if (srcFiles.Rows.Count > 0)
@@ -325,6 +325,7 @@ namespace XDataMidService.Controllers
             xfile.ZTYear = dr["ZTYear"].ToString();
             xfile.PZBeginDate = dr["PZBeginDate"].ToString();
             xfile.PZEndDate = dr["PZEndDate"].ToString();
+            xfile.MountType = dr["MountType"].ToString();
             var pjson = JsonSerializer.Serialize(xfile);
             Tuple<int, string> ret = null;
             string XData_Host = StaticUtil.GetConfigValueByKey("XData_Host");

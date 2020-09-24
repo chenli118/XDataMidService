@@ -165,7 +165,7 @@ namespace XDataMidService.BPImp
                         sb.Append(" go ");
                         sb.AppendFormat(" insert into {1}.{2}.dbo.qhjzpz ( HashCode,ClientID,ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID) " +
                             " select HashCode,'" + xfile.ClientID + "' as ClientID,'{0}' as ProjectID,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,Dfje,Jfsl,Dfsl,ZDR,dfkm,FDetailID " +
-                            " from TBVoucher a where a.hashcode not in ( select hashcode from #h1) ", projectID, linkSvrName, dbName);
+                            " from TBVoucher a  where a.date>'{3}' and a.hashcode not in ( select hashcode from #h1) ", projectID, linkSvrName, dbName, xfile.periodEndDate);
                         sb.Append(" go ");
                         sb.AppendFormat(" select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode  into #f2 from {1}.{2}.dbo.AuxiliaryFDetail  z  where z.projectid ='{0}'", projectID, linkSvrName, dbName);
                         sb.Append(" go ");

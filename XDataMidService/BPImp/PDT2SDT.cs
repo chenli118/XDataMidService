@@ -24,7 +24,7 @@ namespace XDataMidService.BPImp
     {
 
         private int _auditYear;
-        private string conStr,localDbName, _tempFile;
+        private string conStr, localDbName, _tempFile;
         private DateTime _beginDate, _endDate;
         private xfile xfile;
         private bool IsAux = true;
@@ -32,16 +32,16 @@ namespace XDataMidService.BPImp
         public Exception _xdException;
         public PDT2SDT(Models.xfile xf)
         {
-            xfile = xf;          
+            xfile = xf;
             _xdException = new Exception(xf.ZTName);
             response = new XDataResponse();
             response.ResultContext = xf.ZTName;
             localDbName = StaticUtil.GetLocalDbNameByXFile(xf);
             _tempFile = Path.Combine(Directory.GetCurrentDirectory(), "XJYData", localDbName, xf.FileName);
         }
-        public bool DownLoadFile(xfile xf,out string strRet)
+        public bool DownLoadFile(xfile xf, out string strRet)
         {
-            if (System.IO.File.Exists(_tempFile) && new FileInfo(_tempFile).Length>100)
+            if (System.IO.File.Exists(_tempFile) && new FileInfo(_tempFile).Length > 100)
             {
                 strRet = _tempFile;
                 return true;
@@ -53,7 +53,7 @@ namespace XDataMidService.BPImp
             {
                 string logname = XdataAccount.Split('#')[1];
                 string logpwd = XdataAccount.Split('#')[0];
-                var ndc = new MinniDown(wp_host, logname, logpwd);               
+                var ndc = new MinniDown(wp_host, logname, logpwd);
                 FileInfo fileInfo = new FileInfo(_tempFile);
                 string struPath = xf.CustomID + "/" + xf.FileName;
                 try
@@ -63,7 +63,7 @@ namespace XDataMidService.BPImp
                     {
                         File.SetAttributes(_tempFile, FileAttributes.Normal);
                         File.Delete(_tempFile);
-                    }                    
+                    }
                     bool bRet = ndc.DownloadFile(xf.WP_GUID, struPath, _tempFile, out strReult);
                     if (bRet)
                     {
@@ -71,11 +71,11 @@ namespace XDataMidService.BPImp
                         return true;
                     }
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
                     if (DownLoadFile(xf, out strRet))
                         return true;
-                    strReult =err.Message;
+                    strReult = err.Message;
                 }
             }
             strRet = strReult;
@@ -84,7 +84,7 @@ namespace XDataMidService.BPImp
         public XDataResponse Start()
         {
             bool stepRet = false;
-            response.HttpStatusCode = 500; 
+            response.HttpStatusCode = 500;
             try
             {
                 _auditYear = int.Parse(xfile.ZTYear.Trim());
@@ -181,19 +181,20 @@ namespace XDataMidService.BPImp
                     " WHEN MATCHED THEN UPDATE SET aux.fscode = d.fscode,aux.KMSX = d.kmsx,aux.yefx = d.yefx; ";
                 SqlMapperUtil.CMDExcute(sql, null, conStr);
                 return true;
-                    } catch
+            }
+            catch
             { return false; }
         }
 
         private bool UpdateTBDetailTBAuxMny()
-        { 
+        {
             var a1sql = " ;with a1 as (  select  accountcode from account with(nolock)   where accountname = '以前年度损益调整'  UNION ALL select a.projectid,a.accountcode from account a with(nolock)" +
                 "inner join a1 on  a.uppercode = a1.accountcode and a.accountcode != a.accountcode  )  SELECT * FROM a1   ";
             DataTable a1 = SqlServerHelper.GetTableBySql(a1sql, conStr);
             var accountsql = "select * from dbo.Account with(nolock) ";
             DataTable account = SqlServerHelper.GetTableBySql(accountsql, conStr);
             var vouchersql = "select v.accountcode,v.FDetailID,v.fllx,v.jfje,v.dfje,a.syjz from dbo.tbvoucher v  with(nolock)  inner join Account  a   on v.accountcode = a.accountcode   where date <=@pzEndDate ";
-            DataTable voucher = SqlServerHelper.GetTableBySql(vouchersql,conStr);
+            DataTable voucher = SqlServerHelper.GetTableBySql(vouchersql, conStr);
 
             string[] astr = new string[a1.Rows.Count];
             Array.ForEach(a1.Rows.Cast<DataRow>().ToArray(), (dr) =>
@@ -204,16 +205,16 @@ namespace XDataMidService.BPImp
                          group r by new { AccountCode = r["AccountCode"] }
               into g
                          select new
-                         { 
+                         {
                              jfje = g.Sum(x => Convert.ToDecimal(x["jfje"])),
                              dfje = g.Sum(x => Convert.ToDecimal(x["dfje"])),
                          };
-              
-             
+
+
 
             return false;
         }
-     
+
         private bool InitTbDetail()
         {
             try
@@ -332,7 +333,7 @@ namespace XDataMidService.BPImp
             {
                 DataTable auxTable = new DataTable();
                 auxTable.TableName = "TBAux";
-                auxTable.Columns.Add("XID",typeof(Int32));
+                auxTable.Columns.Add("XID", typeof(Int32));
                 auxTable.Columns.Add("ProjectID");
                 auxTable.Columns.Add("AccountCode");
                 auxTable.Columns.Add("AuxiliaryCode");
@@ -416,56 +417,56 @@ namespace XDataMidService.BPImp
                 using (SHA1Managed sha1 = new SHA1Managed())
                 {
                     foreach (var d in d1)
-                {
-                    Array.ForEach(xmField.ToArray(), f =>
                     {
-
-                        foreach (var xv in d)
+                        Array.ForEach(xmField.ToArray(), f =>
                         {
-                            if (xv.Key == f)
+
+                            foreach (var xv in d)
                             {
-                                if (!string.IsNullOrWhiteSpace(xv.Value))
+                                if (xv.Key == f)
                                 {
-                                    DataRow dr1 = auxfdetail.NewRow();
-                                    dr1["XID"] = 0;
-                                    dr1["projectid"] = xfile.ProjectID;
-                                    string dm = d.Kmdm;
-                                    dr1["Accountcode"] = dm.Trim();
-                                    string acode = xv.Value;
-                                    dr1["AuxiliaryCode"] = acode.Trim();
-                                    object ncye = d.Ncye;
-                                    if (!DBNull.Value.Equals(ncye) && ncye != null)
-                                        dr1["Ncye"] = d.Ncye;
-                                    else
-                                        dr1["Ncye"] = decimal.Zero;
-                                    object j1 = d.Jfje1;
-                                    if (!DBNull.Value.Equals(j1) && j1 != null)
-                                        dr1["Jfje1"] = d.Jfje1;
-                                    else
-                                        dr1["Jfje1"] = decimal.Zero;
-                                    object df1 = d.Dfje1;
-                                    if (!DBNull.Value.Equals(df1) && df1 != null)
-                                        dr1["Dfje1"] = d.Dfje1;
-                                    else
-                                        dr1["Dfje1"] = decimal.Zero;
-                                    dr1["FDetailID"] = d.FDetailID;
-                                    dr1["DataType"] = 0;
-                                    dr1["DataYear"] = _auditYear;
+                                    if (!string.IsNullOrWhiteSpace(xv.Value))
+                                    {
+                                        DataRow dr1 = auxfdetail.NewRow();
+                                        dr1["XID"] = 0;
+                                        dr1["projectid"] = xfile.ProjectID;
+                                        string dm = d.Kmdm;
+                                        dr1["Accountcode"] = dm.Trim();
+                                        string acode = xv.Value;
+                                        dr1["AuxiliaryCode"] = acode.Trim();
+                                        object ncye = d.Ncye;
+                                        if (!DBNull.Value.Equals(ncye) && ncye != null)
+                                            dr1["Ncye"] = d.Ncye;
+                                        else
+                                            dr1["Ncye"] = decimal.Zero;
+                                        object j1 = d.Jfje1;
+                                        if (!DBNull.Value.Equals(j1) && j1 != null)
+                                            dr1["Jfje1"] = d.Jfje1;
+                                        else
+                                            dr1["Jfje1"] = decimal.Zero;
+                                        object df1 = d.Dfje1;
+                                        if (!DBNull.Value.Equals(df1) && df1 != null)
+                                            dr1["Dfje1"] = d.Dfje1;
+                                        else
+                                            dr1["Dfje1"] = decimal.Zero;
+                                        dr1["FDetailID"] = d.FDetailID;
+                                        dr1["DataType"] = 0;
+                                        dr1["DataYear"] = _auditYear;
                                     //var hvalue = string.Join("", dr1.ItemArray.ToArray() + "");
                                     // dr1["HashCode"] = sha1.ComputeHash(Encoding.Unicode.GetBytes(hvalue)).Select(b => b.ToString("x2"));
                                     dr1["HashCode"] = DBNull.Value;
-                                    auxfdetail.Rows.Add(dr1);
+                                        auxfdetail.Rows.Add(dr1);
+                                    }
                                 }
                             }
-                        }
 
-                    });
+                        });
+                    }
                 }
-            }
                 string execSQL = " truncate table  " + auxfdetail.TableName;
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
                 SqlServerHelper.SqlBulkCopy(auxfdetail, conStr).Wait();
-                execSQL = " update z set z.HashCode = HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) from AuxiliaryFDetail z" ;
+                execSQL = " update z set z.HashCode = HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) from AuxiliaryFDetail z";
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
             }
             catch (Exception err)
@@ -477,8 +478,8 @@ namespace XDataMidService.BPImp
 
         }
         private bool GetIsExsitsItemClass()
-        {           
-           
+        {
+
             if (IsAux)
             {
                 string sql = "select 1  from sysobjects  where id = object_id('t_itemclass')    and type = 'U'";
@@ -508,9 +509,9 @@ namespace XDataMidService.BPImp
                 sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'jzpz') and name = 'kjqj'";
                 int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 string fdid = ", FDetailID";
-                string jzpzSQL = "  insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx"+fdid+") ";
+                string jzpzSQL = "  insert  TBVoucher(VoucherID,Clientid,ProjectID,IncNo,Date,Period,Pzh,Djh,AccountCode,Zy,Jfje,Dfje,jfsl,fsje,jd,dfsl, ZDR,dfkm,Wbdm,Wbje,Hl,fllx" + fdid + ") ";
                 if (pzqj == 1)
-                {                   
+                {
                     jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, Pz_Date as [date], DATENAME(year,pz_date)+DATENAME(month,pz_date)   as Period ,Pzh,isnull(fjzs,space(0)) as Djh," +
                         "ltrim(rtrim(Kmdm)) as AccountCode ," +
                        " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
@@ -518,11 +519,11 @@ namespace XDataMidService.BPImp
                        " case when jd = '借' then isnull(sl,0)  else 0 end as jfsl,  " +
                        " case when jd = '借' and rmb>0	then 1 else -1 end *(rmb) as fsje," +
                        " case when jd = '借' and rmb>0	then 1 else -1 end	as jd, " +
-                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx" + fdid + " from jzpz ";                  
+                       " case when jd = '贷' then isnull(sl,0)  else 0 end as dfsl,  sr as ZDR, DFKM,Wbdm,Wbje,isnull(Hl,0) as Hl,  1 as fllx" + fdid + " from jzpz ";
                 }
                 else
-                { 
-                    jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, CONVERT(date, '"+xfile.ZTYear+"'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))) as [date]," +
+                {
+                    jzpzSQL += "select  newid() as VoucherID,'" + xfile.ProjectID + "' as clientID, '" + xfile.ProjectID + "' as ProjectID,IncNo, CONVERT(date, '" + xfile.ZTYear + "'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))) as [date]," +
                         "  '" + xfile.ZTYear + "'+   DATENAME(month, CONVERT(date, '" + xfile.ZTYear + "'+ '/'+ ltrim(rtrim(SUBSTRING(pzrq,3,2))) + '/'+ ltrim(rtrim(SUBSTRING(pzrq,5,2)))))  as Period ,Pzh,isnull(fjzs,space(0)) as Djh," +
                         "ltrim(rtrim(Kmdm)) as AccountCode ," +
                        " zy,case when jd = '借' then rmb else 0 end as jfje,  " +
@@ -536,7 +537,7 @@ namespace XDataMidService.BPImp
                 int fid = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 if (fid != 1)
                 {
-                    jzpzSQL= jzpzSQL.Replace(fdid,"");
+                    jzpzSQL = jzpzSQL.Replace(fdid, "");
                 }
                 sql = " select IncNo from jzpz with(nolock) ";
                 DataTable dtIncNo = SqlServerHelper.GetTableBySql(sql, conStr);
@@ -555,7 +556,7 @@ namespace XDataMidService.BPImp
                         startidx = startidx + stepidx;
 
                     }
-                    tmpWhere  = " where incno>" + startidx; ;
+                    tmpWhere = " where incno>" + startidx; ;
                     jzpzSQL += tmpWhere;
                     SqlMapperUtil.CMDExcute(jzpzSQL, null, conStr);
                 }
@@ -570,7 +571,7 @@ namespace XDataMidService.BPImp
                 foreach (var d in ds)
                 {
                     jzpzSQL = jzpzSQL.Replace("from " + pzkname, "from " + d.Pzk_TableName).Replace("truncate table TBVoucher", "");
-                    sql = " select IncNo from "+ d.Pzk_TableName + " with(nolock) ";
+                    sql = " select IncNo from " + d.Pzk_TableName + " with(nolock) ";
                     dtIncNo = SqlServerHelper.GetTableBySql(sql, conStr);
                     startidx = 0;
                     stepidx = 2000;
@@ -602,11 +603,11 @@ namespace XDataMidService.BPImp
                 SqlMapperUtil.CMDExcute(updatesql, null, conStr);
 
                 string incNoSql = " ;with t1 as( select ROW_NUMBER() OVER (ORDER BY pzh) AS IncNO,CONVERT(varchar,date,102) as period,pzh from TBVoucher group by CONVERT(varchar,date,102) ,pzh)  " +
-                   "  update vv set vv.IncNo = t1.IncNO  from TBVoucher vv join t1  on CONVERT(varchar, vv.date, 102) = t1.period and vv.pzh = t1.pzh" ;
+                   "  update vv set vv.IncNo = t1.IncNO  from TBVoucher vv join t1  on CONVERT(varchar, vv.date, 102) = t1.period and vv.pzh = t1.pzh";
                 SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
 
                 incNoSql = " with a1 as( select distinct t.incno,a.syjz from dbo.tbvoucher t	with(nolock)	join dbo.Account a	with(nolock)	on t.AccountCode=a.AccountCode	),a2 as (select incno,max(syjz) maxsyjz,min(syjz) minSyjz" +
-                    " from a1  group by incno) " + 
+                    " from a1  group by incno) " +
                     " 	select ROW_NUMBER() OVER(ORDER BY NEWID()) AS ID, * into #a2 from a2 ;	update v set v.fllx=case when a.maxsyjz=3 then 3 when a.maxsyjz=2 and a.minSyjz=1 then 2 else	1	end" +
                     " from dbo.tbvoucher v inner join #a2 a on v.incno=a.incno ;drop table #a2  ";
                 SqlMapperUtil.CMDExcute(incNoSql, null, conStr);
@@ -650,13 +651,13 @@ namespace XDataMidService.BPImp
                 accountTable.Columns.Add("Syjz", typeof(int));
                 //按级别排序
                 string qsql = " SELECT km.kmdm,km.kmmc,Xmhs,Kmjb,IsMx,Ncye,Jfje1,Dfje1,Ncsl  FROM KM   left join kmye  on km.kmdm  COLLATE Chinese_PRC_CS_AS_KS_WS= kmye.kmdm COLLATE Chinese_PRC_CS_AS_KS_WS   order by Kmjb  ";
-                
+
                 dynamic ds = SqlMapperUtil.SqlWithParams<dynamic>(qsql, null, conStr);
 
                 foreach (var vd in ds)
                 {
                     DataRow dr = accountTable.NewRow();
-                    dr["XID"] =0;
+                    dr["XID"] = 0;
                     dr["ProjectID"] = xfile.ProjectID;
                     string dm = vd.kmdm;
                     dr["AccountCode"] = dm.Trim(); //dm.TrimEnd('.');
@@ -677,7 +678,7 @@ namespace XDataMidService.BPImp
                     accountTable.Rows.Add(dr);
                 }
                 BuildUpperCode(accountTable, conStr);
-                if(IsAux)
+                if (IsAux)
                     BuildTypeCode(accountTable, conStr);
                 string execSQL = " truncate table ACCOUNT ";
                 SqlMapperUtil.CMDExcute(execSQL, null, conStr);
@@ -757,7 +758,7 @@ namespace XDataMidService.BPImp
         {
             try
             {
-                
+
                 string sql = "select 1 from sys.columns  where object_id in(select object_id from sys.objects where name = 'xm') and name = 'xmdm'";
                 int pzqj = SqlMapperUtil.SqlWithParamsSingle<int>(sql, null, conStr);
                 if (pzqj != 1)
@@ -859,15 +860,9 @@ namespace XDataMidService.BPImp
                 if (dbFiles.Count() == 0) return false;
                 InitDataBase(localDbName);
                 Array.ForEach(dbFiles.ToArray(), (string dbfile) =>
-               {
+                {
                    PD2SqlDB(dbfile);
-
-                   //else if (importType != 0 &&
-                   //         tables.Count(x => dbfile.ToLower().IndexOf(x) > -1) > 0)
-                   //{
-                   //    importTxtTable(dbname, dbfile);
-                   //}
-               });
+                 });
 
                 #endregion
             }
@@ -1009,7 +1004,7 @@ namespace XDataMidService.BPImp
             catch (Exception ex)
             {
                 //throw new Exception("解压001文件错误:" + ex.Message, ex);
-                response.ResultContext =" "+ ex.Message;
+                response.ResultContext = " " + ex.Message;
                 Console.WriteLine(ex.Message);
                 return null;
             }
