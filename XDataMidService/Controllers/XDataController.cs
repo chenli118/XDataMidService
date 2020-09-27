@@ -130,7 +130,7 @@ namespace XDataMidService.Controllers
                     var dataTable = SqlServerHelper.GetTableBySql(qdb, constr);
                     if (dataTable.Rows.Count > 0)
                     {
-                        if (RepostXfile2Sql(dataTable.Rows[0]) == 1)
+                        if (RepostXData2SQL(dataTable.Rows[0]) == 1)
                         {
                             SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(constr);
                             csb.InitialCatalog = StaticUtil.GetLocalDbNameByXData(dataTable.Rows[0]);
@@ -158,7 +158,6 @@ namespace XDataMidService.Controllers
             {
                 var dataTable = SqlServerHelper.GetTableBySql(sql, constr);
                 var ret = Newtonsoft.Json.JsonConvert.SerializeObject(dataTable);
-
                 response.ResultContext = ret;
                 return Ok(response).ExecuteResultAsync(_context);
             }
@@ -168,7 +167,17 @@ namespace XDataMidService.Controllers
                 return BadRequest(response).ExecuteResultAsync(_context);
             }
         }
-
+        private DataTable SetErrMsgTable(int RetStatus,string ErrMsg)
+        {
+            DataTable dt = new DataTable();
+            dt.TableName = "ErrMsg";
+            dt.Columns.Add("RetStatus", typeof(int));
+            dt.Columns.Add("ErrMsg", typeof(string));
+            DataRow dr = dt.NewRow();
+            dr["RetStatus"] = RetStatus;
+            dr["ErrMsg"] = ErrMsg;
+            return dt;
+        }
         [HttpPost]
         [Route("XData2EAS")]
         public Task XData2EAS([FromBody] Models.xfile xfile)
@@ -212,7 +221,7 @@ namespace XDataMidService.Controllers
 
                     if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
                     {
-                        var  linkSrc = SqlServerHelper.GetLinkSrvName(StaticUtil.GetConfigValueByKey("EASConn"), constr);
+                        var linkSrc = SqlServerHelper.GetLinkSrvName(StaticUtil.GetConfigValueByKey("EASConn"), constr);
                         qdb = " select  XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate,MountType from  [" + linkSrc.Item1 + "].XDB.dbo.XFiles order by xid desc ";
                         //qdb += " union all ";
                         var srcFiles = SqlServerHelper.GetTableBySql(qdb, constr);
@@ -226,7 +235,7 @@ namespace XDataMidService.Controllers
                             {
                                 _logger.LogInformation("  开始处理缓存外数据 " + xfile.XID + " " + DateTime.Now);
                                 DataRow dr = srcFiles.Rows.Cast<DataRow>().Where(r => r.Field<int>("XID") == xfile.XID).FirstOrDefault();
-                                if (RepostXfile2Sql(dr) == 1)
+                                if (RepostXData2SQL(dr) == 1)
                                 {
                                     StaticData.X2EasList[key] = "";
                                     var pjson = JsonSerializer.Serialize(xfile);
@@ -302,6 +311,106 @@ namespace XDataMidService.Controllers
             }
         }
         [HttpPost]
+        [Route("AppedXDataByXFiles")]
+        public Task AppedXDataByXFiles([FromBody] Models.xfile xfile)
+        {
+            XDataResponse response = new XDataResponse();
+            ActionContext _context = this.ControllerContext;
+            string localDbName = StaticUtil.GetLocalDbNameByXFile(xfile);
+            XData2EasService easService = new XData2EasService(_logger);
+            string key = xfile.XID + xfile.ZTID + xfile.CustomID + xfile.FileName;           
+            try
+            {
+                if (StaticData.X2SqlList.ContainsKey(key) && StaticData.X2SqlList[key] == 1)
+                {                    
+                    var ret = Newtonsoft.Json.JsonConvert.SerializeObject(SetErrMsgTable(-1, "数据正在准备中！"));
+                    response.ResultContext = ret;
+                    return Ok(response).ExecuteResultAsync(_context); 
+                }
+                string constr = StaticUtil.GetConfigValueByKey("XDataConn");
+                string qdb = "select 1 from xdata.dbo.xfiles where xid =" + xfile.XID;
+                var thisdb = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+                var tbv = SqlServerHelper.GetLinkSrvName(xfile.DbName, constr);
+                string linkSvrName = tbv.Item1;
+                string dbName = tbv.Item2;
+                int port = new System.Uri(_configuration.GetSection("urls").Value).Port;
+                string preRet = string.Empty;
+                if (thisdb != 1)
+                {
+                    response.HttpStatusCode = 500;
+                    qdb = "select Errmsg from xdata.dbo.badfiles where xid =" + xfile.XID;
+                    var errmsg = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
+                    if (!string.IsNullOrWhiteSpace(errmsg))
+                    {
+                        response.ResultContext = xfile.XID + "  " + errmsg + "！ ";                      
+                    }
+                    qdb = "select xgroup from xdata.dbo.repeatdb where xid =" + xfile.XID;
+                    var xgroup = SqlMapperUtil.SqlWithParamsSingle<string>(qdb, null, constr);
+                    if (!string.IsNullOrWhiteSpace(xgroup))
+                    {
+                        response.ResultContext = xfile.XID + "  数据与" + xgroup + "重复！ ";
+                    }
+                    if (string.IsNullOrWhiteSpace(errmsg) && string.IsNullOrWhiteSpace(xgroup))
+                    {
+                        var  linkSrc = SqlServerHelper.GetLinkSrvName(StaticUtil.GetConfigValueByKey("EASConn"), constr);
+                        qdb = " select  XID,CustomID,ZTID,ZTYear,ZTName,CustomName,FileName,PZBeginDate,PZEndDate,MountType from  [" + linkSrc.Item1 + "].XDB.dbo.XFiles order by xid desc ";
+                        var srcFiles = SqlServerHelper.GetTableBySql(qdb, constr);
+                        if (srcFiles.Rows.Count > 0)
+                        {
+                            int maxxid = Convert.ToInt32(srcFiles.Rows[0]["XID"]);
+                            qdb = "select max(xid) from xdata.dbo.xfiles ";
+                            int thexid = SqlMapperUtil.SqlWithParamsSingle<int>(qdb, null, constr);
+
+                            if (xfile.XID < thexid)
+                            {
+                                _logger.LogInformation("  开始处理缓存外数据 " + xfile.XID + " " + DateTime.Now);
+                                DataRow dr = srcFiles.Rows.Cast<DataRow>().Where(r => r.Field<int>("XID") == xfile.XID).FirstOrDefault();
+                                if (RepostXData2SQL(dr) != 1)
+                                {
+                                    response.ResultContext = xfile.XID + ": 缓存外数据处理失败，请联系统管理员！";
+                                }
+                            }
+                            else
+                            {
+                                response.ResultContext = xfile.XID + string.Format(": 数据准备中，前面还有{0} 个待处理文件！ ", maxxid - xfile.XID);
+                            }
+                        }
+                    }
+                    preRet = response.ResultContext;                   
+                    if (!string.IsNullOrEmpty(preRet))
+                    {
+                        _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
+                        response.ResultContext = Newtonsoft.Json.JsonConvert.SerializeObject(SetErrMsgTable(-1, preRet));
+                        return Ok(response).ExecuteResultAsync(_context);
+                    }
+                }
+                //AppendXData 
+                {
+                    response = easService.AppedXDataByXFile(xfile);
+                    if (response.HttpStatusCode == 200)
+                    {
+                        string dSQL = "SELECT * FROM AppedXDataDiff";
+                        SqlConnectionStringBuilder sqlConnectionStringBuilder = new SqlConnectionStringBuilder(constr);
+                        sqlConnectionStringBuilder.InitialCatalog = localDbName;
+                        constr = sqlConnectionStringBuilder.ConnectionString;
+                        var dataTable = SqlServerHelper.GetTableBySql(dSQL, constr);
+                        var ret = Newtonsoft.Json.JsonConvert.SerializeObject(dataTable);
+                        response.ResultContext = ret;
+                        return Ok(response).ExecuteResultAsync(_context);
+                    }
+                    response.ResultContext = Newtonsoft.Json.JsonConvert.SerializeObject(SetErrMsgTable(-1, response.ResultContext));
+                    return Ok(response).ExecuteResultAsync(_context);
+                }
+            }
+            catch (Exception err)
+            { 
+                var ret = Newtonsoft.Json.JsonConvert.SerializeObject(SetErrMsgTable(-1, string.Format("文件 {0} 项目{1} 追加EAS失败: " + err.Message, xfile.XID, xfile.ProjectID)));
+                response.ResultContext = ret;
+                _logger.LogInformation(response.ResultContext + " " + DateTime.Now);
+                return Ok(response).ExecuteResultAsync(_context); 
+            }
+        }
+        [HttpPost]
         [Route("SetXDataStatus")]
         public Task SetXDataStatus([FromBody] Models.xfile xfile)
         {
@@ -312,7 +421,7 @@ namespace XDataMidService.Controllers
             SqlMapperUtil.CMDExcute(sql, null, constr);
             return Ok(response).ExecuteResultAsync(_context);
         }
-        private int RepostXfile2Sql(DataRow dr)
+        private int RepostXData2SQL(DataRow dr)
         {
             xfile xfile = new xfile();
             xfile.WP_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
