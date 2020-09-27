@@ -375,26 +375,32 @@ AS
 begin try	
 SET NOCOUNT ON
 SET XACT_ABORT ON
-truncate table tbdetail 
-
-;with s1 as(
+truncate table tbdetail
+declare @tempTable1 table 
+(
+	id int identity(1,1),
+    AccountCode  varchar(255) collate Chinese_PRC_CS_AS_KS_WS,
+    AccountName varchar(255),
+    Fs  varchar(255),
+    FsCode varchar(255) collate Chinese_PRC_CS_AS_KS_WS,
+    Yefx int,
+	Kmsx int
+)insert into @tempTable1
 select distinct C.Accountcode,C.AccountName,G.FsName,G.FsCode,G.Yefx,G.kmsx from dbo.TBFS G with(nolock)
-
 inner join dbo.account C with(nolock) on (C.AccountName = G.FsName)  
-
-where (C.Jb=1) and G.ismx=1 )
-
-, s2 as( select distinct C.AccountCode,C.AccountName,F.Fs,G.FsCode,G.Yefx,G.Kmsx From dbo.account C with(nolock),	EASKmdzb F with(nolock) ,	dbo.TBFS G with(nolock)
-
-where   	  (C.AccountName = F.Note)  and (F.Fs=G.FsName) and (C.jb=1) and G.ismx=1  and C.AccountName not in (select AccountName from s1) )
-
+where (C.Jb=1) and G.ismx=1 
+insert into @tempTable1
+select distinct C.AccountCode,C.AccountName,F.Fs,G.FsCode,G.Yefx,G.Kmsx
+From dbo.account C with(nolock),	EASKmdzb F with(nolock) ,	dbo.TBFS G with(nolock)
+where   	  (C.AccountName = F.Note) 
+ and (F.Fs=G.FsName) and (C.jb=1) and G.ismx=1
+ and C.AccountName not in (select AccountName from @tempTable1) 
  select distinct NEWID() IID ,DB_NAME() AS projectid,a.AccountCode,space(0) AS AuxiliaryCode,space(0) AS SourceFSCode,
-
- a.AccountName as AccAuxName,a.jb as TBType,a.IsMx AS IsMx,isnull(a.UpperCode,isnull(b.fscode,space(0))) TBGrouping,a.Ncye AS Sqqmye,
-
-isnull(b.FsCode,space(0))fscode,isnull(b.yefx,1)yefx,isnull(b.kmsx,0)kmsx,0 AS isAux,a.ismx AS isAccMx,0 AS DataType 
-into #p1
- from dbo.Account	a with(nolock) left	join s2	b on left(a.accountcode,len(b.accountcode)) collate Chinese_PRC_CS_AS_KS_WS=b.AccountCode collate Chinese_PRC_CS_AS_KS_WS  
+ a.AccountName as AccAuxName,a.jb as TBType,0 AS IsMx,isnull(a.UpperCode,isnull(b.fscode,space(0))) TBGrouping,a.Ncye AS Sqqmye,
+isnull(b.FsCode,space(0))fscode,isnull(b.yefx,1)yefx,isnull(b.kmsx,0)kmsx,0 AS isAux,a.ismx AS isAccMx,0 AS DataType
+into #p1  from dbo.Account	a with(nolock)
+left	join	@tempTable1	b
+on left(a.accountcode,len(b.accountcode)) collate Chinese_PRC_CS_AS_KS_WS=b.AccountCode collate Chinese_PRC_CS_AS_KS_WS  
 alter table #p1 add ID int IDENTITY(1,1)
 declare @leve int=1000
 declare @ix int=1
@@ -443,629 +449,219 @@ CREATE TABLE dbo.Accountclass
 
 
 GO
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'保单红利支出'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('保单红利支出', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'保费收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('保费收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'本年利润'
-	, 2
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('本年利润', 2)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'补贴收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('补贴收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'财务费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('财务费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'分保费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('分保费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'分出保费'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('分出保费', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'公允价值变动损益'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('公允价值变动损益', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'管理费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('管理费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'汇兑损益'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('汇兑损益', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'勘探费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('勘探费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'利润分配'
-	, 2
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('利润分配', 2)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'利息收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('利息收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'利息支出'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('利息支出', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'赔付支出'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('赔付支出', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'赔付支出净额'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('赔付支出净额', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'其他收益'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('其他收益', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'其他业务成本'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('其他业务成本', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'其他业务收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('其他业务收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'其他业务支出'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('其他业务支出', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'手续费及佣金收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('手续费及佣金收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'手续费及佣金支出'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('手续费及佣金支出', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'税金及附加'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('税金及附加', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'所得税'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('所得税', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'所得税费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('所得税费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'摊回保险责任准备金'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('摊回保险责任准备金', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'摊回分保费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('摊回分保费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'摊回赔付支出'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('摊回赔付支出', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'提取保险合同准备金净额'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('提取保险合同准备金净额', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'提取保险责任准备金'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('提取保险责任准备金', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'提取未到期责任准备金'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('提取未到期责任准备金', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'投资收益'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('投资收益', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'退保金'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('退保金', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'销售费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('销售费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'研发费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('信用减值损失', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'已赚保费'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('研发费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'以前年度损益调整'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('已赚保费', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'营业成本'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('以前年度损益调整', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'营业费用'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('营业成本', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'营业收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('营业费用', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'营业税金及附加'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('营业收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'营业外收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('营业税金及附加', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'营业外支出'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('营业外收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'营业务税金及附加'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('营业外支出', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'主营业务成本'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('营业务税金及附加', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'主营业务收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('主营业务成本', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'主营业务税金及附加'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('主营业务收入', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'资产处置收益'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('主营业务税金及附加', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'资产处置损失'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('资产处置收益', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'资产处置损益'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('资产处置损失', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'资产减值损失'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('资产处置损益', 1)
 GO
 
-INSERT INTO dbo.Accountclass
-	(
-	Accountname
-	, syjz
-	)
-VALUES
-	(
-	'租赁收入'
-	, 1
-	)
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('资产减值损失', 1)
 GO
+
+INSERT INTO dbo.Accountclass (Accountname, syjz)
+VALUES ('租赁收入', 1)
+GO
+
+
 
 
 
@@ -1485,7 +1081,7 @@ INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Ye
 GO
 INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '83400', '研发费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
 GO
-INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84100', '资产减值损失', 2, 4, 1, '84', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84100', '资产减值损失', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
 GO
 INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audCas', '84200', '公允价值变动收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
 GO
@@ -1835,7 +1431,7 @@ INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Ye
 GO
 INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '83400', '研发费用', 2, 5, 1, '83', 1, '83000', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
 GO
-INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84100', '资产减值损失', 2, 4, 1, '84', 1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
+INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84100', '资产减值损失', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
 GO
 INSERT INTO Pack_TBFS (ProjectID, FSCode, FsName, FSType, TBType, IsMx, Kmsx, Yefx, TBGrouping, Sqqmye, Qqccgz, jfje, dfje, CrjeJF, CrjeDF, AjeJF, AjeDF, RjeJF, RjeDF, TaxBase, YearEarlier, PY1, PyTaxBase, Random, GrossPretax, jfje1, dfje1, jfje2, dfje2, Memo) VALUES ('audSec', '84200', '公允价值变动收益', 2, 4, 1, '84', -1, '80200', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 1, 0, 0, 0, 0, '')
 GO
