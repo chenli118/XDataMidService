@@ -537,7 +537,7 @@ namespace XDataMidService
                     if (con.State != ConnectionState.Open) con.Open();
                 }
                 if (con.State != ConnectionState.Open) con.Open();
-                using (var transaction = con.BeginTransaction())
+                using (var transaction = con.BeginTransaction(IsolationLevel.ReadCommitted))
                 {
                     try
                     {

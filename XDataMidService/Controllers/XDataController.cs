@@ -176,6 +176,7 @@ namespace XDataMidService.Controllers
             DataRow dr = dt.NewRow();
             dr["RetStatus"] = RetStatus;
             dr["ErrMsg"] = ErrMsg;
+            dt.Rows.Add(dr);
             return dt;
         }
         [HttpPost]
