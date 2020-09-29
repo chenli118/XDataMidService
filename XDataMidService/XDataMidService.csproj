@@ -17,9 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="NetDiskLibrary">
-      <HintPath>bin\Debug\netcoreapp3.0\NetDiskLibrary.dll</HintPath>
-    </Reference>
     <Reference Include="ParadoxReader">
       <HintPath>bin\Debug\netcoreapp3.0\ParadoxReader.dll</HintPath>
     </Reference>
