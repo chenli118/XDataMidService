@@ -272,20 +272,28 @@ namespace XDataMidService.BPImp
                     sb.Append(" SET XACT_ABORT ON   go ");
                     if (xfile.periodType == 0)
                     {                      
-                        sb.AppendFormat(" select hashcode into #hc from {1}.{2}.dbo.TBVoucher t where t.projectid ='{0}' ", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" select hashcode,VoucherID into #remotePZ from {1}.{2}.dbo.TBVoucher t where t.projectid ='{0}' ", projectID, linkSvrName, dbName);
                         sb.Append(" go ");
-                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[TBVoucher](ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) " +
-                               " select  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
-                               " from  {3}.dbo.TBVoucher a where a.Date<='" + xfile.periodEndDate + "' and a.hashcode not in (select hashcode from #hc)", projectID, linkSvrName, dbName, localDbName);
+                        sb.AppendFormat(" select  NEWID() as VoucherID,  '{0}' as ProjectID,'" + xfile.ClientID + "' as ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
+                               "   into #localPZ  from  {1}.dbo.TBVoucher a where a.Date<='" + xfile.periodEndDate + "' and a.hashcode not in (select hashcode from #remotePZ)", projectID, localDbName);
                         if (xfile.periodBeginDate != null && xfile.periodBeginDate > DateTime.MinValue)
                         {
                             sb.Append("  and Date>'" + xfile.periodBeginDate + "'");
                         }
                         sb.Append(" go ");
-                        sb.AppendFormat(" select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode  into #f1 from {1}.{2}.dbo.AuxiliaryFDetail  z  where z.projectid ='{0}'", projectID, linkSvrName, dbName);
+                        sb.AppendFormat(" insert into  {0}.{1}.dbo.[TBVoucher](VoucherID,ProjectID,Clientid,IncNo,Date,Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID,HashCode) " +
+                               " select VoucherID,ProjectID,ClientID,IncNo,Date, Period,Pzlx,Pzh,Djh,AccountCode,ProjectCode,Zy,Jfje,dfje,jfsl,dfsl,zdr,dfkm,jd,Fsje,Wbdm,wbje,Hl,FLLX,SampleSelectedYesNo,SampleSelectedType,TBGrouping,EASREF,AccountingAge,qmyegc,Stepofsample,ErrorYesNo,FDetailID, HashCode " +
+                               " from  #localPZ ", linkSvrName, dbName); 
                         sb.Append(" go ");
-                        sb.AppendFormat(" insert into  {1}.{2}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid," + xfile.periodType + " as datatype,datayear " +
-                           " from {3}.dbo. AuxiliaryFDetail f where f.hashcode not in (select hashcode from #f1) ", projectID, linkSvrName, dbName, localDbName);
+                        sb.AppendFormat(" select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode,Accountcode+AuxiliaryCode as VoucherID  into #remoteFZ from {1}.{2}.dbo.AuxiliaryFDetail  z  where z.projectid ='{0}' and z.datatype ={3} ", projectID, linkSvrName, dbName, xfile.periodType);
+                        sb.Append(" go ");
+                        sb.AppendFormat(" select '{0}' as ProjectID,AccountCode,auxiliaryCode,fdetailid,{2} as datatype,datayear " +
+                           " into #localFZ  from {1}.dbo. AuxiliaryFDetail f where f.hashcode not in (select hashcode from #remoteFZ) ", projectID, localDbName, xfile.periodType);
+
+
+                        sb.Append(" go ");
+                        sb.AppendFormat(" insert into  {0}.{1}.dbo.[AuxiliaryFDetail] (ProjectID,AccountCode,auxiliaryCode,fdetailid,datatype,datayear) select  ProjectID,AccountCode,auxiliaryCode,fdetailid, datatype,datayear " +
+                           " from  #localFZ ", linkSvrName, dbName);
 
 
                         //差异记录表AppedXDataDiff
@@ -293,17 +301,17 @@ namespace XDataMidService.BPImp
                         sb.Append(" go ");
                         sb.Append(" IF OBJECT_ID(N'dbo.AppedXDataDiff', N'U') IS  NOT  NULL  DROP TABLE dbo.AppedXDataDiff; ");
                         sb.Append(" go ");
-                        sb.Append(" Create TABLE AppedXDataDiff(PZNewMore binary(20) null,PZOldMore binary(20) null,FZNewMore binary(20) null,FZOldMore binary(20) null) ");
+                        sb.Append(" Create TABLE AppedXDataDiff(PZNewMore nvarchar(50) null,PZOldMore nvarchar(50) null,FZNewMore nvarchar(248) null,FZOldMore nvarchar(248) null) ");
                         sb.Append(" go ");
-                        sb.AppendFormat(" select ROW_NUMBER() over(order by hashcode) id,hashcode into #PZNewMore from  {0}.dbo.TBVoucher t where hashcode not in (select hashcode from #hc) ", localDbName);
+                        sb.AppendFormat(" select ROW_NUMBER() over(order by VoucherID) id,VoucherID as PZNewMore into #PZNewMore from  #localPZ ", localDbName);
                         sb.Append(" go ");
-                        sb.AppendFormat(" select ROW_NUMBER() over(order by hashcode) id,hashcode into #PZOldMore from #hc  where hashcode not in (select hashcode from {0}.dbo.TBVoucher) ", localDbName);
+                        sb.AppendFormat(" select ROW_NUMBER() over(order by VoucherID) id,VoucherID as  PZOldMore into #PZOldMore from #remotePZ  where hashcode not in (select hashcode from {0}.dbo.TBVoucher) ", localDbName);
                         sb.Append(" go ");
-                        sb.AppendFormat(" select ROW_NUMBER() over(order by hashcode) id,HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as hashcode into #FZNewMore from  {0}.dbo.AuxiliaryFDetail z where hashcode not in (select hashcode from #f1) ", localDbName);
+                        sb.AppendFormat(" select ROW_NUMBER() over(order by Accountcode) id,Accountcode+AuxiliaryCode as FZNewMore into #FZNewMore from  {0}.dbo.AuxiliaryFDetail z where hashcode not in (select hashcode from #remoteFZ) ", localDbName);
                         sb.Append(" go ");
-                        sb.AppendFormat(" select ROW_NUMBER() over(order by hashcode) id,hashcode into #FZOldMore from #f1  where hashcode not in (select HASHBYTES('SHA1', (select z.Accountcode,z.AuxiliaryCode,z.FDetailID,z.DataYear FOR XML RAW, BINARY BASE64)) as HashCode from {0}.dbo.AuxiliaryFDetail z) ", localDbName);
+                        sb.AppendFormat(" select ROW_NUMBER() over(order by VoucherID) id,VoucherID as  FZOldMore into #FZOldMore from #remoteFZ  where hashcode not in (select hashcode from {0}.dbo.AuxiliaryFDetail z) ", localDbName);
                         sb.Append(" go ");
-                        sb.AppendFormat(" insert into  {0}.dbo.[AppedXDataDiff] (PZNewMore,PZOldMore,FZNewMore,FZOldMore) select p1.hashcode as PZNewMore,p2.hashcode as PZOldMore,f1.hashcode as FZNewMore,f2.hashcode as FZOldMore from  #PZNewMore p1 full join #PZOldMore p2 on p1.id=p2.id full join   #FZNewMore f1 on p1=f1 full join #FZOldMore f2 on f1.id=f2.id", localDbName);
+                        sb.AppendFormat(" insert into  {0}.dbo.[AppedXDataDiff] (PZNewMore,PZOldMore,FZNewMore,FZOldMore) select PZNewMore,PZOldMore,FZNewMore,FZOldMore from  #PZNewMore p1 full join #PZOldMore p2 on p1.id=p2.id full join   #FZNewMore f1 on p1.ID=f1.ID full join #FZOldMore f2 on f1.id=f2.id", localDbName);
                         sb.Append(" go ");
                     }
                     string[] sqlarr = sb.ToString().Split(new[] { " GO ", " go " }, StringSplitOptions.RemoveEmptyEntries);

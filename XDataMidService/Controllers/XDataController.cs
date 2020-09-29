@@ -395,6 +395,7 @@ namespace XDataMidService.Controllers
                         sqlConnectionStringBuilder.InitialCatalog = localDbName;
                         constr = sqlConnectionStringBuilder.ConnectionString;
                         var dataTable = SqlServerHelper.GetTableBySql(dSQL, constr);
+
                         var ret = Newtonsoft.Json.JsonConvert.SerializeObject(dataTable);
                         response.ResultContext = ret;
                         return Ok(response).ExecuteResultAsync(_context);
