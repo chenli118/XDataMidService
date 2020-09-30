@@ -139,8 +139,8 @@ namespace XDataBG
                 {
                     bRunning = false;
                     Console.WriteLine("Nothing Todo :" + DateTime.Now);
-                    string sql = " delete from xdata..badfiles   where errmsg like '%网盘下载%'";
-                    ExecuteSql(sql);
+                    //string sql = " delete from xdata..badfiles   where errmsg like '%网盘下载%'";
+                    //ExecuteSql(sql);
                     BatchDetachDB();
                     return;
                 }
