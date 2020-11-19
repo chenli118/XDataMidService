@@ -141,7 +141,7 @@ namespace XDataMidService.Controllers
                         }
                         else
                         {
-                            string pbad = "insert into  xdata.dbo.facheck values(" + xfile.XID + ", '" + xfile.XID + " 解包过程出错！', 3)";
+                            string pbad = "insert into  xdata.dbo.facheck values(" + xfile.XID + ", '" + xfile.XID + " 解包过程出错！', 3,1)";
                             var thisdb = SqlMapperUtil.CMDExcute(pbad, null, constr);
                         }
                     }
@@ -149,7 +149,7 @@ namespace XDataMidService.Controllers
                 }
                 catch (Exception err)
                 {
-                    string pbad = "insert into  xdata.dbo.facheck values(" + xfile.XID + ", '解包过程出错: " + xfile.XID + " " + err.Message.Replace("'", "").Replace(":", "").Replace("?", "") + "    ', 3)";
+                    string pbad = "insert into  xdata.dbo.facheck values(" + xfile.XID + ", '解包过程出错: " + xfile.XID + " " + err.Message.Replace("'", "").Replace(":", "").Replace("?", "") + "    ', 3,1)";
                     var thisdb = SqlMapperUtil.CMDExcute(pbad, null, constr);
                 }
             }
@@ -421,6 +421,9 @@ namespace XDataMidService.Controllers
             string sql = string.Format("update   XData.dbo.XFiles set DataStatus={1} where xid ={0}", xfile.XID, xfile.DataStatus);
             var constr = StaticUtil.GetConfigValueByKey("XDataConn");
             SqlMapperUtil.CMDExcute(sql, null, constr);
+            sql = string.Format("update   XDB.dbo.XFiles  set Referred=1 where xid ={0}", xfile.XID);
+            var EASConn = StaticUtil.GetConfigValueByKey("EASConn");
+            SqlMapperUtil.CMDExcute(sql, null, EASConn);
             return Ok(response).ExecuteResultAsync(_context);
         }
         private int RepostXData2SQL(DataRow dr)

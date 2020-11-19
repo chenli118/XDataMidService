@@ -339,3 +339,8 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /XDataMidService/XJYData
+
+#project ConfigFiles
+*.json
+*.config
+*.tsql

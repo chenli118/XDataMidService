@@ -22,7 +22,7 @@ namespace XDataBG
         private static string connectString;
         private static object obj_lock = new object();
 
-        private static Dictionary<int ,xfile> ProcessList;
+        private static Dictionary<int, xfile> ProcessList;
         static void Main(string[] args)
         {
             logfile = logfile.Replace("log.", Guid.NewGuid() + ".");
@@ -30,7 +30,7 @@ namespace XDataBG
             //Mutex mt = new Mutex(false, "XDataBG", out bCreate);
             //if (bCreate)
             {
-                
+
                 var autoEvent = new AutoResetEvent(false);
                 _timer = new Timer(p => FlushData(), autoEvent, 0, 10000);
                 autoEvent.WaitOne();
@@ -39,7 +39,7 @@ namespace XDataBG
         static Dictionary<string, int> runDict = new Dictionary<string, int>();
         public static Tuple<int, string> HttpHandlePost(string url, string pjson)
         {
-            
+
             HttpClientHandler httpHandler = new HttpClientHandler();
             string strRet = string.Empty;
             HttpClient httpClient = new HttpClient();
@@ -110,7 +110,7 @@ namespace XDataBG
             }
             finally
             {
-                
+
                 if (postContent != null)
                     postContent.Dispose();
                 if (response != null)
@@ -123,7 +123,7 @@ namespace XDataBG
             }
             return new Tuple<int, string>(-1, strRet);
         }
-
+        private static bool externExec = false;
         private static void FlushData()
         {
             if (bRunning) return;
@@ -139,9 +139,13 @@ namespace XDataBG
                 {
                     bRunning = false;
                     Console.WriteLine("Nothing Todo :" + DateTime.Now);
-                    //string sql = " delete from xdata..badfiles   where errmsg like '%网盘下载%'";
-                    //ExecuteSql(sql);
                     BatchDetachDB();
+                    if (externExec) return;
+                    externExec = true;
+                    var KeepDays = int.Parse(ConnectionString("KeepDays"));
+                    BatchDeleteOldFile(@"D:\XData\5002\XJYData", KeepDays);
+                    BatchDeleteOldFile(@"D:\XData\5003\XJYData", KeepDays);
+                    externExec = false;
                     return;
                 }
                 else
@@ -162,7 +166,7 @@ namespace XDataBG
                     parallelOptions.MaxDegreeOfParallelism = 2;
                     _ = Parallel.ForEach(customDb, parallelOptions, (c, loopstate) =>
                        {
-                          
+
                            DataRow dr = c.Value[0];
                            xfile xfile = new xfile();
                            xfile.wp_GUID = "e703ffdf-cdf9-4111-97ee-0747f531ebb2";
@@ -176,7 +180,8 @@ namespace XDataBG
                            xfile.ztYear = dr["ZTYear"].ToString();
                            xfile.pzBeginDate = dr["PZBeginDate"].ToString();
                            xfile.pzEndDate = dr["PZEndDate"].ToString();
-                           if (!ProcessList.ContainsKey (xfile.xID))
+                           xfile.mountType = dr["MountType"].ToString();
+                           if (!ProcessList.ContainsKey(xfile.xID))
                            {
                                //ProcessList.Add(xfile.xID,xfile);
                                var pjson = JsonSerializer.Serialize(xfile);
@@ -198,7 +203,20 @@ namespace XDataBG
                                if (ret.Item1 == 1)
                                {
                                    Console.WriteLine(xfile.xID + "  " + xfile.ztName + " Completed !" + DateTime.Now);
-                                 
+                                   xfile.uploadUser = "FACHECK";
+                                   xfile.dbName = ConnectionString("EASConn");
+                                   pjson = JsonSerializer.Serialize(xfile);
+                                   UriBuilder check0 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[0]), "XData/GetXDataCheckByID");
+                                   UriBuilder check1 = new UriBuilder("http", XData_Host, int.Parse(XData_Host_Port[1]), "XData/GetXDataCheckByID");
+                                   if (xfile.xID % 2 == 0)
+                                   {
+                                       ret = HttpHandlePost(check0.Uri.AbsoluteUri, pjson);
+                                   }
+                                   else
+                                   {
+                                       ret = HttpHandlePost(check1.Uri.AbsoluteUri, pjson);
+                                   }
+                                   Console.WriteLine(xfile.xID + "  " + xfile.ztName + " EndChecked !" + DateTime.Now);
                                }
                                else
                                {
@@ -215,8 +233,8 @@ namespace XDataBG
             }
             catch (Exception exception)
             {
-                 
-                Console.WriteLine("ERROR:"+exception.Message+ " " + DateTime.Now);
+
+                Console.WriteLine("ERROR:" + exception.Message + " " + DateTime.Now);
             }
             finally
             {
@@ -225,16 +243,16 @@ namespace XDataBG
 
 
         }
-        private static int ExecuteSql(string  sql)
+        private static int ExecuteSql(string sql)
         {
-            connectString = ConnectionString("XDataConn");             
+            connectString = ConnectionString("XDataConn");
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try
                 {
                     if (conn.State != System.Data.ConnectionState.Open) conn.Open();
                     SqlCommand cmd = new SqlCommand(sql, conn);
-                   return cmd.ExecuteNonQuery(); 
+                    return cmd.ExecuteNonQuery();
 
                 }
                 catch (Exception err)
@@ -242,13 +260,13 @@ namespace XDataBG
                     Console.WriteLine(err.Message);
                     WriteLog(logfile, DateTime.Now + " : " + err.Message);
                     return -1;
-                } 
+                }
             }
         }
         private static bool ExistsXID(int xid)
         {
             connectString = ConnectionString("XDataConn");
-            string sql = "select xid from  XData.dbo.[xfiles] where xid="+xid;
+            string sql = "select xid from  XData.dbo.[xfiles] where xid=" + xid;
             using (SqlConnection conn = new SqlConnection(connectString))
             {
                 try
@@ -288,7 +306,7 @@ namespace XDataBG
                 {
                     Console.WriteLine(err.Message);
                 }
-               
+
             }
             return dt;
         }
@@ -321,11 +339,11 @@ namespace XDataBG
             var whereas = ConnectionString("Whereas");
             var xFilesCache = ConnectionString("XFilesCache");
             string linkSvr = GetLinkSrvName(ConnectionString("EASConn"), connectString).Item1;
-            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate] from " +
+            string sql = " select XID, [CustomID] ,[CustomName] ,[FileName] ,[ZTID] ,[ZTName] ,[ZTYear],[BeginMonth] ,[EndMonth] ,[PZBeginDate] ,[PZEndDate],[MountType] from " +
                 " [" + linkSvr + "].XDB.dbo.XFiles where xid not in" +
-                " (select xid from  XData.dbo.[XFiles]) and ZTYear >2014    and xid not in(select xid from  XData.dbo.[badfiles])" +
+                " (select xid from  XData.dbo.[XFiles]) and  DATEPART(yyyy, getdate())- ZTYear <5   and xid not in(select xid from  XData.dbo.[badfiles])" +
                 " and xid not in(select xid from  XData.dbo.[repeatdb])" +
-                 " and xid> " + (maxid -Convert.ToInt32(xFilesCache)) +
+                 " and xid> " + (maxid - Convert.ToInt32(xFilesCache)) +
                 " and  CustomID in ( select nmclientid from  [" + linkSvr + "].neweasv5.[dbo].[ClientBasicInfo])" +
                 " and  " + whereas + "   order by xid  ";
             using (SqlConnection conn = new SqlConnection(connectString))
@@ -342,7 +360,7 @@ namespace XDataBG
                 }
                 catch (Exception err)
                 {
-                    Console.WriteLine(" Load data fail: "+ err.Message+ " "+ DateTime.Now);
+                    Console.WriteLine(" Load data fail: " + err.Message + " " + DateTime.Now);
                     WriteLog(logfile, DateTime.Now + " : " + err.Message);
                 }
             }
@@ -386,15 +404,60 @@ namespace XDataBG
             string linkSvrName = GetLinkServer(localCon, csb.DataSource, csb.UserID, csb.Password, csb.DataSource);
             return new Tuple<string, string>(linkSvrName, csb.InitialCatalog);
         }
-        private static  void WriteLog(string path, string message)
+        private static void WriteLog(string path, string message)
         {
-          // await Task.Run(() => { System.IO.File.AppendAllText(path, message); });
+            // await Task.Run(() => { System.IO.File.AppendAllText(path, message); });
+        }
+        private static void BatchDeleteOldFile(string fPath, int passDays)
+        {
+
+            if (!System.IO.Directory.Exists(fPath)) return;
+            List<DirectoryInfo> dirList = new List<DirectoryInfo>();
+            foreach (string folder in Directory.GetDirectories(fPath))
+            {
+                DirectoryInfo dir = new DirectoryInfo(folder);
+                if (dir.CreationTime < DateTime.Now.AddDays(-passDays + 3))
+                {
+                    var files = dir.GetFiles("*.*", SearchOption.AllDirectories);
+                    foreach (var file in files)
+                    {
+                        try
+                        {
+                            File.SetAttributes(file.FullName, FileAttributes.Normal);
+                            file.Delete();
+                            dirList.Add(dir);
+                            Console.WriteLine("deleted file: " + file.FullName);
+                        }
+                        catch
+                        {
+
+                            Console.WriteLine("deleted file failed :" + file.FullName);
+                        }
+                    }
+                }
+
+            }
+            if (dirList.Count > 0)
+            {
+                try
+                {
+                    foreach (var dir in dirList)
+                    {
+                        dir.Delete();
+                        Console.WriteLine("deleted dir: " + dir.FullName);
+                    }
+                }
+                catch (Exception rr)
+                {
+                    Console.WriteLine("deleted dir failed: " + rr.Message);
+                }
+            }
         }
         private static void BatchDetachDB()
         {
-            var KeepDays =int.Parse(ConnectionString("KeepDays"));
-            string sql = " select * from sys.databases where name <> 'xdata' AND database_id> 4 AND len(name)>20  and create_date< GETDATE()-"+ KeepDays; 
-             DataTable allDB = GetTableBySql(sql);
+            var KeepDays = int.Parse(ConnectionString("KeepDays"));
+            string sql = " select * from sys.databases where name <> 'xdata' AND database_id> 4 AND len(name)>20  and create_date< GETDATE()-" + KeepDays;
+            DataTable allDB = GetTableBySql(sql);
             if (allDB.Rows.Count == 0) return;
 
             string fName = "SELECT   name ,   physical_name  FROM sys.master_files ; ";
@@ -415,7 +478,7 @@ namespace XDataBG
 
             }
 
-         
+
 
 
             string xfsql = " select * from xdata.dbo.xfiles ";
