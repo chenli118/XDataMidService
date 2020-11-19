@@ -138,10 +138,10 @@ namespace XDataBG
                 if (QueueTable == null || QueueTable.Rows.Count == 0)
                 {
                     bRunning = false;
-                    Console.WriteLine("Nothing Todo :" + DateTime.Now);
-                    BatchDetachDB();
+                    Console.WriteLine("Nothing Todo :" + DateTime.Now);                  
                     if (externExec) return;
                     externExec = true;
+                    BatchDetachDB();
                     var KeepDays = int.Parse(ConnectionString("KeepDays"));
                     BatchDeleteOldFile(@"D:\XData\5002\XJYData", KeepDays);
                     BatchDeleteOldFile(@"D:\XData\5003\XJYData", KeepDays);
@@ -412,20 +412,24 @@ namespace XDataBG
         {
 
             if (!System.IO.Directory.Exists(fPath)) return;
-            List<DirectoryInfo> dirList = new List<DirectoryInfo>();
+            List<DirectoryInfo> emptyFolders = new List<DirectoryInfo>();
             foreach (string folder in Directory.GetDirectories(fPath))
             {
                 DirectoryInfo dir = new DirectoryInfo(folder);
-                if (dir.CreationTime < DateTime.Now.AddDays(-passDays + 3))
+                if (dir.CreationTime < DateTime.Now.AddDays(-passDays))
                 {
                     var files = dir.GetFiles("*.*", SearchOption.AllDirectories);
+                    if (files.Length == 0)
+                    {
+                        if (!emptyFolders.Contains(dir))
+                            emptyFolders.Add(dir);
+                    }
                     foreach (var file in files)
                     {
                         try
                         {
                             File.SetAttributes(file.FullName, FileAttributes.Normal);
-                            file.Delete();
-                            dirList.Add(dir);
+                            file.Delete();                           
                             Console.WriteLine("deleted file: " + file.FullName);
                         }
                         catch
@@ -437,13 +441,13 @@ namespace XDataBG
                 }
 
             }
-            if (dirList.Count > 0)
+            if (emptyFolders.Count > 0)
             {
                 try
                 {
-                    foreach (var dir in dirList)
+                    foreach (var dir in emptyFolders)
                     {
-                        dir.Delete();
+                        dir.Delete(true);
                         Console.WriteLine("deleted dir: " + dir.FullName);
                     }
                 }
