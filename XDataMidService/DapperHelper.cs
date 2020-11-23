@@ -199,8 +199,10 @@ namespace XDataMidService
         public static int InsertUpdateOrDeleteSql(string sql, dynamic parms, string connectionName = null)
         {   
             using (SqlConnection connection = GetOpenConnection(connectionName))
-            { 
-                return connection.Execute(sql, (object)parms);
+            {                 
+                int ret = connection.Execute(sql, (object)parms);
+                connection.Close();
+                return ret;
             }
         }
         public static int CMDExcute(string sql, dynamic parms, string connectionName = null)
@@ -209,7 +211,9 @@ namespace XDataMidService
             {
                 SqlCommand sqlCommand = new SqlCommand(sql, connection);
                 sqlCommand.CommandTimeout = 1000*1200;
-                return sqlCommand.ExecuteNonQuery();
+                int ret = sqlCommand.ExecuteNonQuery();
+                connection.Close();
+                return ret;
             }
         }
         public static void ExecuteNonQueryBatch(string connectionName, string sql)
@@ -234,6 +238,7 @@ namespace XDataMidService
                         cmd.ExecuteNonQuery();
                     }
                 }
+                connection.Close();
             }
         }
         /// <summary>

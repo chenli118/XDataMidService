@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XDataBG", "XDataBG\XDataBG.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XDataTools", "..\XDataTools\XDataTools\XDataTools.csproj", "{E31AE45F-C1A1-454E-BCD3-A0CB4E5AE9CB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseTest", "DatabaseTest\DatabaseTest\DatabaseTest.csproj", "{41191988-73B5-41A5-BF98-47AC8B8F955B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{E31AE45F-C1A1-454E-BCD3-A0CB4E5AE9CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E31AE45F-C1A1-454E-BCD3-A0CB4E5AE9CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E31AE45F-C1A1-454E-BCD3-A0CB4E5AE9CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41191988-73B5-41A5-BF98-47AC8B8F955B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41191988-73B5-41A5-BF98-47AC8B8F955B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41191988-73B5-41A5-BF98-47AC8B8F955B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41191988-73B5-41A5-BF98-47AC8B8F955B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

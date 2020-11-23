@@ -820,8 +820,7 @@ namespace XDataMidService.BPImp
 
             if (result == 0)
             {
-                string s1 = " create database [" + dbName + "]";
-                int ret = SqlMapperUtil.InsertUpdateOrDeleteSql(s1, null);
+                SqlServerHelper.CreateByBak(dbName, conStr);
             }
             else
             {
@@ -831,9 +830,9 @@ namespace XDataMidService.BPImp
             SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(conStr);
             csb.InitialCatalog = dbName;
             conStr = csb.ConnectionString;
-            var StaticStructAndFn = Path.Combine(Directory.GetCurrentDirectory(), "StaticStructAndFn.tsql");
-            var sqls = File.ReadAllText(StaticStructAndFn);
-            SqlServerHelper.ExecuteSqlWithGoSplite(sqls, conStr);
+            //var StaticStructAndFn = Path.Combine(Directory.GetCurrentDirectory(), "StaticStructAndFn.tsql");
+            //var sqls = File.ReadAllText(StaticStructAndFn);
+            //SqlServerHelper.ExecuteSqlWithGoSplite(sqls, conStr);
             string kjqjInsert = "delete dbo.kjqj where Projectid='{0}'  " +
                 " insert  dbo.kjqj(ProjectID,CustomerCode,CustomerName,BeginDate,EndDate,KJDate)" +
                 "  select '{0}','{1}','{1}','{2}','{3}','{4}'";

@@ -10,6 +10,24 @@ namespace XDataMidService.BPImp
 {
     internal class SqlServerHelper
     {
+        public static void CreateByBak(string dbname, string conStr)
+        {
+
+            string sql = "RESTORE DATABASE [" + dbname + "]";
+            sql = sql + @" FROM  DISK = N'D:\Database\backup\RestoreXDataTemp_wc.bak' ";
+            sql = sql + " WITH  FILE = 1, NOUNLOAD,  ";
+            sql = sql + @" MOVE 'XDataTemp' TO 'D:\Database\data\" + dbname + "_Data.mdf', ";
+            sql = sql + @" MOVE 'XDataTemp_log' TO 'D:\Database\Logs\" + dbname + "_log.ldf', ";
+            sql = sql + " MAXTRANSFERSIZE = 4194304,BUFFERCOUNT = 100, RECOVERY,REPLACE,STATS = 10; ";
+            try
+            {
+                ExecuteSqlWithGoSplite(sql, conStr);                
+            }   
+            catch (Exception err)
+            {
+                Console.WriteLine("Restoe failed :"+ err.Message);
+            }
+        }
         public static Tuple<string, string> GetLinkSrvName(string connectInfo, string localCon)
         {
             connectInfo = connectInfo.Replace("Asynchronous Processing=true", "");

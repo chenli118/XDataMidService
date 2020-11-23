@@ -134,9 +134,9 @@ namespace XDataMidService.Controllers
                         {
                             SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(constr);
                             csb.InitialCatalog = StaticUtil.GetLocalDbNameByXData(dataTable.Rows[0]);
-                            var sptext = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "VerifyFinancialData.sql");
-                            var sqls = System.IO.File.ReadAllText(sptext, Encoding.UTF8);
-                            SqlMapperUtil.ExecuteNonQueryBatch(csb.ConnectionString, sqls);
+                            //var sptext = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "VerifyFinancialData.sql");
+                            //var sqls = System.IO.File.ReadAllText(sptext, Encoding.UTF8);
+                            //SqlMapperUtil.ExecuteNonQueryBatch(csb.ConnectionString, sqls);
                             SqlMapperUtil.CMDExcute("  exec VerifyFinancialData '" + xfile.XID + "'  ", null, csb.ConnectionString);
                         }
                         else
