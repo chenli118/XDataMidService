@@ -10,7 +10,7 @@ namespace XDataMidService.BPImp
 {
     internal class SqlServerHelper
     {
-        public static void CreateByBak(string dbname, string conStr)
+        public static bool CreateByBak(string dbname, string conStr)
         {
 
             string sql = "RESTORE DATABASE [" + dbname + "]";
@@ -21,11 +21,14 @@ namespace XDataMidService.BPImp
             sql = sql + " MAXTRANSFERSIZE = 4194304,BUFFERCOUNT = 100, RECOVERY,REPLACE,STATS = 10; ";
             try
             {
-                ExecuteSqlWithGoSplite(sql, conStr);                
+                ExecuteSqlWithGoSplite(sql, conStr);
+                return true;
             }   
             catch (Exception err)
             {
                 Console.WriteLine("Restoe failed :"+ err.Message);
+                return false;
+
             }
         }
         public static Tuple<string, string> GetLinkSrvName(string connectInfo, string localCon)

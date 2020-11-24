@@ -109,13 +109,16 @@ namespace XDataMidService.BPImp
             lock (ofile)
             {
                 var files = UnZipFile(_tempFile);
-                if (files == null || files.Length == 0)
-                    stepRet = false;
+                if (files == null || files.Length == 0)              
+                {
+                    response.ResultContext += "ERROR：解压过程出错！";
+                    return response;
+                }
                 stepRet = DBInit(files);
             }
             if (!stepRet)
             {
-                response.ResultContext += "ERROR：基础数据加载失败";
+                response.ResultContext += "ERROR：基础数据创建失败";
                 return response;
             }
             stepRet = InitProject();
@@ -811,32 +814,41 @@ namespace XDataMidService.BPImp
             }
             return true;
         }
-        private void InitDataBase(string dbName)
+        private bool InitDataBase(string dbName)
         {
-            string conStr = StaticUtil.GetConfigValueByKey("XDataConn");
-            SqlMapperUtil.GetOpenConnection(conStr);
-            string exsitsDB = "select count(1) from sys.sysdatabases where name =@dbName";
-            int result = SqlMapperUtil.SqlWithParamsSingle<int>(exsitsDB, new { dbName = dbName });
+            try
+            {
+                string conStr = StaticUtil.GetConfigValueByKey("XDataConn");
+                SqlMapperUtil.GetOpenConnection(conStr);
+                string exsitsDB = "select count(1) from sys.sysdatabases where name =@dbName";
+                int result = SqlMapperUtil.SqlWithParamsSingle<int>(exsitsDB, new { dbName = dbName });
 
-            if (result == 0)
-            {
-                SqlServerHelper.CreateByBak(dbName, conStr);
+                if (result == 0)
+                {
+                   return SqlServerHelper.CreateByBak(dbName, conStr);
+                }
+                else
+                {
+                    string sql = "  exec dropdb '" + dbName + "'";
+                    int ret = SqlMapperUtil.InsertUpdateOrDeleteSql(sql, null);
+                }
+                SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(conStr);
+                csb.InitialCatalog = dbName;
+                conStr = csb.ConnectionString;
+                //var StaticStructAndFn = Path.Combine(Directory.GetCurrentDirectory(), "StaticStructAndFn.tsql");
+                //var sqls = File.ReadAllText(StaticStructAndFn);
+                //SqlServerHelper.ExecuteSqlWithGoSplite(sqls, conStr);
+                string kjqjInsert = "delete dbo.kjqj where Projectid='{0}'  " +
+                    " insert  dbo.kjqj(ProjectID,CustomerCode,CustomerName,BeginDate,EndDate,KJDate)" +
+                    "  select '{0}','{1}','{1}','{2}','{3}','{4}'";
+                SqlServerHelper.ExecuteSqlWithGoSplite(string.Format(kjqjInsert, dbName, xfile.ProjectID, _beginDate, _endDate, _auditYear), conStr);
+                return true;
             }
-            else
+            catch (Exception ex)
             {
-                string sql = "  exec dropdb '" + dbName + "'";
-                int ret = SqlMapperUtil.InsertUpdateOrDeleteSql(sql, null);
+                _xdException = ex;
+                return false;
             }
-            SqlConnectionStringBuilder csb = new SqlConnectionStringBuilder(conStr);
-            csb.InitialCatalog = dbName;
-            conStr = csb.ConnectionString;
-            //var StaticStructAndFn = Path.Combine(Directory.GetCurrentDirectory(), "StaticStructAndFn.tsql");
-            //var sqls = File.ReadAllText(StaticStructAndFn);
-            //SqlServerHelper.ExecuteSqlWithGoSplite(sqls, conStr);
-            string kjqjInsert = "delete dbo.kjqj where Projectid='{0}'  " +
-                " insert  dbo.kjqj(ProjectID,CustomerCode,CustomerName,BeginDate,EndDate,KJDate)" +
-                "  select '{0}','{1}','{1}','{2}','{3}','{4}'";
-            SqlServerHelper.ExecuteSqlWithGoSplite(string.Format(kjqjInsert, dbName, xfile.ProjectID, _beginDate, _endDate, _auditYear), conStr);
 
         }
         private bool DBInit(string[] pfiles)
@@ -856,12 +868,14 @@ namespace XDataMidService.BPImp
                     || (Path.GetFileNameWithoutExtension(p).ToLower() != "jzpz" &&
                         Path.GetFileNameWithoutExtension(p).ToLower().IndexOf("jzpz") > -1)));
                 if (dbFiles.Count() == 0) return false;
-                InitDataBase(localDbName);
-                Array.ForEach(dbFiles.ToArray(), (string dbfile) =>
+                bool bRet =InitDataBase(localDbName);
+                if (bRet)
                 {
-                   PD2SqlDB(dbfile);
-                 });
-
+                    Array.ForEach(dbFiles.ToArray(), (string dbfile) =>
+                    {
+                        PD2SqlDB(dbfile);
+                    });
+                }
                 #endregion
             }
             catch (Exception err)
