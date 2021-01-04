@@ -186,7 +186,7 @@ namespace XDataMidService
         {
             using (SqlConnection connection = GetOpenConnection(connectionnName))
             {
-                return connection.Query<T>(sql, (object)parms).ToList();
+                return connection.Query<T>(sql, (object)parms,null,true,1200).ToList();
             }
         }
 

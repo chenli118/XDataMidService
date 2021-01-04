@@ -601,7 +601,7 @@ namespace XDataMidService.BPImp
                     }
                     pzkname = d.Pzk_TableName;
                 }
-                string updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.ProjectID,z.Date,z.Pzh,z.Djh,z.AccountCode,z.Zy,z.Jfje,z.Dfje,z.jfsl,z.fsje,z.jd,z.dfsl,z.ZDR,z.dfkm,z.Wbdm,z.Wbje,z.Hl,z.FDetailID FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";
+                string updatesql = "update z set z.HashCode =HASHBYTES('SHA1', (select z.Date,z.Pzh,z.Djh,z.AccountCode,z.Zy,z.Jfje,z.Dfje,z.jfsl,z.fsje,z.jd,z.dfsl,z.ZDR,z.dfkm,z.Wbdm,z.Wbje,z.Hl,z.FDetailID FOR XML RAW, BINARY BASE64)) from  TBVoucher  z";
                 SqlMapperUtil.CMDExcute(updatesql, null, conStr);
 
                 string incNoSql = " ;with t1 as( select ROW_NUMBER() OVER (ORDER BY pzh) AS IncNO,CONVERT(varchar,date,102) as period,pzh from TBVoucher group by CONVERT(varchar,date,102) ,pzh)  " +

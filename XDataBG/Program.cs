@@ -139,13 +139,16 @@ namespace XDataBG
                 {
                     bRunning = false;
                     Console.WriteLine("Nothing Todo :" + DateTime.Now);                  
-                    if (externExec) return;
+                    if (externExec || DateTime.Now.Hour>3 ) return;
+                    Task.Factory.StartNew(()=>{
                     externExec = true;
                     BatchDetachDB();
                     var KeepDays = int.Parse(ConnectionString("KeepDays"));
                     BatchDeleteOldFile(@"D:\XData\5002\XJYData", KeepDays);
                     BatchDeleteOldFile(@"D:\XData\5003\XJYData", KeepDays);
                     externExec = false;
+
+                    });                   
                     return;
                 }
                 else
